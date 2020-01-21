@@ -41,7 +41,16 @@ namespace Melanchall.DryWetMidi.Common
         #region Fields
 
         private readonly byte _value;
-
+        /// <summary>
+        /// 
+        /// </summary>
+        public byte valor
+        {
+            get
+            {
+                return _value;
+            }
+        }
         #endregion
 
         #region Constructor

@@ -13,9 +13,8 @@ namespace Plagiator.Music
         public long EndSinceBeginnintOfSongInTicks { get; set; }
 
         public GeneralMidi2Program Instrument { get; set; }
+
         public List<PitchBendEvent> PitchBendingEvents { get; set; }
-
         public List<ControlChangeEvent> ControlChangeEvents { get; set; }
-
     }
 }

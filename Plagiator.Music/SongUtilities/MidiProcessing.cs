@@ -5,7 +5,6 @@ using Plagiator.Music;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Plagiator.Mucic.Utilities
 {
@@ -170,13 +169,14 @@ namespace Plagiator.Mucic.Utilities
                             numerator = currentTimeSignature.Numerator,
                             denominator = currentTimeSignature.Denominator
                         },
-                        Tempo = currentTempo.MicrosecondsPerQuarterNote
+                        Tempo = currentTempo.MicrosecondsPerQuarterNote,
+                        TicksFromBeginningOfSong = currentTick
                     };
                     retObj.Add(bar);
                     currentTick += currentTimeSignature.Numerator * ticksPerBeat;
                     lastTickOfBarToBeAdded += currentTimeSignature.Numerator * ticksPerBeat;
                     if (currentTick >= songDurationInTicks)
-                        break;
+                        break;                    
                 }
                 if (currentTick >= timeOfNextTimeSignatureEvent)
                     timeSigIndex++;
@@ -211,13 +211,14 @@ namespace Plagiator.Mucic.Utilities
         }
 
 
-        public static List<Note> GetNotesOfSong(string base64encodedMidi)
+        public static List<Note> GetNotesOfSong(string base64encodedMidiFile)
         {
             var retObj = new List<Note>();
             var midiFile = MidiFile.Read(base64encodedMidiFile);
-            long songDuration = GetSongDurationInTicks(base64encodedMidi);
+            long songDuration = GetSongDurationInTicks(base64encodedMidiFile);
 
-            foreach (TrackChunk chunk in midiFile.Chunks)
+            var cleanedChuncks = SeparateChannelsIntoDifferentChunks(midiFile.Chunks);
+            foreach (TrackChunk chunk in cleanedChuncks)
             {
                 long currentTick = 0;
                 var eventCount = 0;
@@ -227,8 +228,9 @@ namespace Plagiator.Mucic.Utilities
                 if (programChangeEvents.Count > 0)
                     currentIntrument = GetInstrument(programChangeEvents, 0);
 
-                while (currentTick< songDuration && eventCount< chunk.Events.Count) {
+                while (currentTick < songDuration && eventCount < chunk.Events.Count) {
                     var eventito = chunk.Events[eventCount];
+                    currentTick += eventito.DeltaTime;
                     if (eventito is NoteOnEvent)
                     {
                         NoteOnEvent noteOnEvent = eventito as NoteOnEvent;
@@ -239,31 +241,49 @@ namespace Plagiator.Mucic.Utilities
                         NoteOffEvent noteOffEvent = eventito as NoteOffEvent;
                         var noteOnEvent = new NoteOnEvent
                         {
-                            DeltaTime = eventito.DeltaTime,
                             Velocity = new SevenBitNumber(0),
                             NoteNumber = noteOffEvent.NoteNumber
                         };
                         ProcessNoteOn(noteOnEvent, currentNotes, retObj, currentTick, currentIntrument);
                     }
+                    if (eventito is PitchBendEvent)
+                    {
+                        PitchBendEvent bendito =eventito as PitchBendEvent;
+                        foreach (var notita in currentNotes)
+                        {
+                            PitchBendEvent maldito = bendito.Clone() as PitchBendEvent;
+                            maldito.DeltaTime = currentTick;
+                            notita.PitchBendingEvents.Add(maldito);
+                        }
+                    }
                     if (eventito is ControlChangeEvent)
                     {
-
+                        ControlChangeEvent chEv = eventito as ControlChangeEvent;
+                        foreach (var notita in currentNotes)
+                        {
+                            ControlChangeEvent changito = chEv.Clone() as ControlChangeEvent;
+                            changito.DeltaTime = currentTick;
+                            notita.ControlChangeEvents.Add(changito);
+                        }
                     }
-
+                    eventCount++;
                 }
             }
+            return retObj;
         }
+
+
         private static void ProcessNoteOn(NoteOnEvent noteOnEvent, List<Note> currentNotes,
-            List<Note> retObj, long currentTick, GeneralMidi2Program currentIntrument)
+                List<Note> retObj, long currentTick, GeneralMidi2Program currentIntrument)
         {
-            
-            if (noteOnEvent.NoteNumber > 0)
+
+            if (noteOnEvent.Velocity > 0)
             {
                 var notita = new Note
                 {
                     Instrument = currentIntrument,
                     Pitch = noteOnEvent.NoteNumber,
-                    StartSinceBeginningOSongInTicks = noteOnEvent.DeltaTime + currentTick
+                    StartSinceBeginningOSongInTicks =  currentTick
                 };
                 currentNotes.Add(notita);
             }
@@ -272,22 +292,87 @@ namespace Plagiator.Mucic.Utilities
                 var notota = currentNotes.Where(n => n.Pitch == noteOnEvent.NoteNumber).FirstOrDefault();
                 if (notota != null)
                 {
-                    notota.EndSinceBeginnintOfSongInTicks = currentTick + noteOnEvent.DeltaTime;
+                    notota.EndSinceBeginnintOfSongInTicks = currentTick;
                     retObj.Add(notota);
                     currentNotes.Remove(notota);
                 }
             }
         }
+
+
+        /// <summary>
+        /// It is possible to have events belonging to different channels in the same chunck
+        /// As part of normalization, we create chuncks that have only one channel each
+        /// 
+        /// It is also possible that there are events for one particular channel in 2 different
+        /// chunkds.
+        /// 
+        /// The output of these methods clears this possible mess, so after running this method
+        /// we can be sure that there is a 1 to 1 relation between channels and chuncks
+        /// 
+        /// The method takes care only of channel events, all channel independent events are
+        /// filtered out
+        /// </summary>
+        /// <param name="chuncks"></param>
+        /// <returns></returns>
+        private static List<TrackChunk> SeparateChannelsIntoDifferentChunks(ChunksCollection chuncks)
+        {
+            var channelsPresent = new List<int>();
+            var allEvents = new List<MidiEvent>();
+            foreach (var chunck in chuncks)
+            {
+                long ticksSinceStart = 0;
+                var chunko = chunck as TrackChunk;
+                if (chunko != null)
+                {
+                    foreach (var eventito in chunko.Events)
+                    {
+                        ticksSinceStart += eventito.DeltaTime;
+                        var channelDependentEvent = eventito as ChannelEvent;
+                        if (channelDependentEvent != null)
+                        {
+                            var channel = channelDependentEvent.Channel;
+                            if (!channelsPresent.Contains(channel))
+                                channelsPresent.Add(channel);
+                            channelDependentEvent.DeltaTime = ticksSinceStart;
+                            allEvents.Add(channelDependentEvent);
+                        }
+                    }
+                }
+            }
+            var tracks = new List<MidiEvent>[16];
+            var retObj = new List<TrackChunk>();
+            foreach (MidiEvent eventito in allEvents)
+            {
+                var e = eventito as ChannelEvent;
+                if (e != null)
+                {
+                    if (tracks[e.Channel.valor] == null)
+                        tracks[e.Channel.valor] = new List<MidiEvent>();
+                    tracks[e.Channel.valor].Add(e);
+                }
+            }
+            foreach(var track in tracks)
+            {
+                if (track == null) continue;
+                var chunckito = new TrackChunk();
+                foreach (var e in ConvertAccumulatedTimeToDeltaTime(track))
+                    chunckito.Events.Add(e);
+                retObj.Add(chunckito);
+            }
+            return retObj;
+        }
+   
         private static GeneralMidi2Program GetInstrument(List<MidiEvent> events,int index)
         {
             var eventito = events[index];
             var instrumentCode = ((ProgramChangeEvent)(eventito)).ProgramNumber;
             return (GeneralMidi2Program)(instrumentCode.valor);
         }
-        public static string GetNormalizedVersionOfMidiFileBase64encoded(string base64encodedMidiFile)
-        {
-            var soret = GetEmptyBarsOfSong(base64encodedMidiFile);
-            return base64encodedMidiFile;
-        }
+        //public static string GetNormalizedVersionOfMidiFileBase64encoded(string base64encodedMidiFile)
+        //{
+        //    var soret = GetEmptyBarsOfSong(base64encodedMidiFile);
+        //    return base64encodedMidiFile;
+        //}
     }
 }

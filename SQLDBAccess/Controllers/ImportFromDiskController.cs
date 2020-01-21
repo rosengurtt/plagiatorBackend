@@ -1,6 +1,7 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Microsoft.AspNetCore.Mvc;
 using Plagiator.Mucic.Utilities;
+using Plagiator.Music;
 using SQLDBAccess.DataAccess;
 using SQLDBAccess.ErrorHandling;
 using SQLDBAccess.Helpers;
@@ -67,8 +68,8 @@ namespace SQLDBAccess.Controllers
                                 Band = band,
                                 Style = style,
                                 OriginalMidiBase64Encoded = originalMidiBase64encoded,
-                                 NormalizedMidiBase64Encoded= MidiProcessing.GetNormalizedVersionOfMidiFileBase64encoded(originalMidiBase64encoded)
-                            };
+                                 NormalizedMidiBase64Encoded= NormalizedSong.GetSongAsBase64EncodedMidi(originalMidiBase64encoded)
+                                 };
                             try
                             {
                                 Context.Song.Add(song);

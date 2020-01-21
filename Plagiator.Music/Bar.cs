@@ -7,7 +7,7 @@ namespace Plagiator.Music
     /// </summary>
     public class Bar
     {
-        public int TicksFromBeginningOfSong { get; set; }
+        public long TicksFromBeginningOfSong { get; set; }
         
         public TimeSignature TimeSignature { get; set; }
 
