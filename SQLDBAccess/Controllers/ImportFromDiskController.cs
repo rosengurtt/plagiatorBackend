@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Plagiator.Mucic.Utilities;
 using Plagiator.Music;
+using Serilog;
 using SQLDBAccess.DataAccess;
 using SQLDBAccess.ErrorHandling;
 using SQLDBAccess.Helpers;
@@ -62,14 +63,23 @@ namespace SQLDBAccess.Controllers
                             var chunkitos = lelo.Chunks;
 
                             var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
+                            string normalizedMidiBase64encoded = "";
+                            try
+                            {
+                                normalizedMidiBase64encoded = NormalizedSong.GetSongAsBase64EncodedMidi(originalMidiBase64encoded);
+                            }
+                            catch(Exception ex)
+                            {
+                                Log.Error(ex, $"Failes to normalize song {Path.GetFileName(songPath)}");
+                            }
                             Song song = new Song()
                             {
                                 Name = Path.GetFileName(songPath),
                                 Band = band,
                                 Style = style,
                                 OriginalMidiBase64Encoded = originalMidiBase64encoded,
-                                 NormalizedMidiBase64Encoded= NormalizedSong.GetSongAsBase64EncodedMidi(originalMidiBase64encoded)
-                                 };
+                                 NormalizedMidiBase64Encoded= normalizedMidiBase64encoded
+                            };
                             try
                             {
                                 Context.Song.Add(song);

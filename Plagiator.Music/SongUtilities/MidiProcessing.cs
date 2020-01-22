@@ -2,6 +2,7 @@
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Standards;
 using Plagiator.Music;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,12 +111,35 @@ namespace Plagiator.Mucic.Utilities
             }
             return returnObj;
         }
-        public static List<MidiEvent> ConvertAccumulatedTimeToDeltaTime(List<MidiEvent> list)
+        public static List<MidiEvent> ConvertAccumulatedTimeToDeltaTime(List<MidiEvent> events)
+        {
+            var returnObj = GetSortedEventsList(events);
+
+            for (int i = returnObj.Count - 1; i > 0; i--)
+                returnObj[i].DeltaTime -= returnObj[i - 1].DeltaTime;
+            return returnObj;
+        }
+        public static List<MidiEvent> ConvertAccumulatedTimeToDeltaTime(TrackChunk chunky)
+        {
+            return ConvertAccumulatedTimeToDeltaTime(chunky.Events.ToList());
+        }
+
+        private static List<MidiEvent> GetSortedEventsList(List<MidiEvent> events)
         {
             var returnObj = new List<MidiEvent>();
-            foreach (var e in list) returnObj.Add(e.Clone());
-            for (int i = list.Count - 1; i > 0; i--)
-                returnObj[i].DeltaTime -= returnObj[i - 1].DeltaTime;
+            foreach (var e in events) returnObj.Add(e.Clone());
+            for (int i = 0; i < returnObj.Count - 1; i++)
+            {
+                for (int j = i + 1; j < returnObj.Count; j++)
+                {
+                    if (returnObj[i].DeltaTime > returnObj[j].DeltaTime)
+                    {
+                        var aux = returnObj[i].Clone();
+                        returnObj[i] = returnObj[j];
+                        returnObj[j] = aux;
+                    }
+                }
+            }
             return returnObj;
         }
 
@@ -218,6 +242,11 @@ namespace Plagiator.Mucic.Utilities
             long songDuration = GetSongDurationInTicks(base64encodedMidiFile);
 
             var cleanedChuncks = SeparateChannelsIntoDifferentChunks(midiFile.Chunks);
+            if (cleanedChuncks.Count > 16)
+            {
+                Log.Error("Creation of CleanedChuncks produced more than 16 chuncks");
+                throw new Exception("Creation of CleanedChuncks produced more than 16 chuncks");
+            }
             foreach (TrackChunk chunk in cleanedChuncks)
             {
                 long currentTick = 0;
@@ -283,7 +312,8 @@ namespace Plagiator.Mucic.Utilities
                 {
                     Instrument = currentIntrument,
                     Pitch = noteOnEvent.NoteNumber,
-                    StartSinceBeginningOSongInTicks =  currentTick
+                    StartSinceBeginningOSongInTicks = currentTick,
+                    Volume = noteOnEvent.Velocity
                 };
                 currentNotes.Add(notita);
             }
@@ -369,10 +399,63 @@ namespace Plagiator.Mucic.Utilities
             var instrumentCode = ((ProgramChangeEvent)(eventito)).ProgramNumber;
             return (GeneralMidi2Program)(instrumentCode.valor);
         }
-        //public static string GetNormalizedVersionOfMidiFileBase64encoded(string base64encodedMidiFile)
-        //{
-        //    var soret = GetEmptyBarsOfSong(base64encodedMidiFile);
-        //    return base64encodedMidiFile;
-        //}
+        
+        public static List<GeneralMidi2Program> GetInstruments(List<Note> notes)
+        {
+            var instruments = new List<GeneralMidi2Program>();
+            foreach(var n in notes)
+            {
+                if (!instruments.Contains(n.Instrument))
+                    instruments.Add(n.Instrument);
+            }
+            return instruments.OrderBy(x => (int)x).ToList();
+        }
+
+        public static List<TrackChunk> GetNormalizedNotesChuncks(NormalizedSong normalita)
+        {
+            var dicky =    new Dictionary<GeneralMidi2Program, TrackChunk>();
+            var channels = new Dictionary<GeneralMidi2Program, FourBitNumber>();
+            for (byte i = 0; i < normalita.Instruments.Count; i++)
+            {
+                channels[normalita.Instruments[i]] = new FourBitNumber(i);
+            }
+            foreach (var note in normalita.Notes)
+            {
+                dicky[note.Instrument].Events.Add(
+                    new NoteOnEvent
+                    {
+                        Channel = channels[note.Instrument],
+                        DeltaTime = note.StartSinceBeginningOSongInTicks,
+                        NoteNumber = new SevenBitNumber(note.Pitch),
+                        Velocity = new SevenBitNumber(note.Volume)
+                    });
+                dicky[note.Instrument].Events.Add(
+                    new NoteOffEvent
+                    {
+                        Channel = channels[note.Instrument],
+                        DeltaTime = note.EndSinceBeginnintOfSongInTicks,
+                        NoteNumber = new SevenBitNumber(note.Pitch)
+                    });
+                foreach (var bendito in note.PitchBendingEvents)
+                {
+                    dicky[note.Instrument].Events.Add(
+                    new PitchBendEvent
+                    {
+                        Channel = channels[note.Instrument],
+                        DeltaTime = bendito.DeltaTime,
+                        PitchValue = bendito.PitchValue
+                    });
+                };
+            }
+            var retObj = new List<TrackChunk>();
+            foreach(var key in dicky.Keys)
+            {
+                var events = ConvertAccumulatedTimeToDeltaTime(dicky[key]);
+                var chunkito = new TrackChunk();
+                foreach (var e in events) chunkito.Events.Add(e);
+                retObj.Add(chunkito);
+            }
+            return retObj;
+        }
     }
 }

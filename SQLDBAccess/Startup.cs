@@ -28,6 +28,15 @@ namespace SQLDBAccess
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            // The next statement disables the asp.net default automatic validation, so we can control the
+            // response we send back when a request is invalid
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
+
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAllOriginsPolicy", // I introduced a string constant just as a label "AllowAllOriginsPolicy"

@@ -7,7 +7,8 @@ namespace Plagiator.Music
 
     public class Note
     {
-        public int Pitch { get; set; }
+        public byte Pitch { get; set; }
+        public byte Volume { get; set; }
         public long StartSinceBeginningOSongInTicks { get; set; }
     
         public long EndSinceBeginnintOfSongInTicks { get; set; }

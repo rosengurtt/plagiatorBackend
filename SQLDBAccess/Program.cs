@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace SQLDBAccess
 {
@@ -20,7 +21,11 @@ namespace SQLDBAccess
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder
+                    .UseIISIntegration()
+                    .UseStartup<Startup>()
+                    .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
+                                    .ReadFrom.Configuration(hostingContext.Configuration));
                 });
     }
 }
