@@ -77,7 +77,7 @@ namespace Melanchall.DryWetMidi.Core
         /// <summary>
         /// Gets the collection of events contained in the track chunk.
         /// </summary>
-        public EventsCollection Events { get; } = new EventsCollection();
+        public EventsCollection Events { get; set; } = new EventsCollection();
 
         #endregion
 

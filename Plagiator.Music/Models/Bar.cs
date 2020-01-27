@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace Plagiator.Music
+namespace Plagiator.Music.Models
 {
     /// <summary>
     /// Represents a bar in a song (in Spanish "un compas")
@@ -16,6 +17,7 @@ namespace Plagiator.Music
         /// </summary>
         public long Tempo { get; set; }
 
+        public List<Note> Notes { get; set; }
 
     }
 }

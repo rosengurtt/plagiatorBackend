@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SQLDBAccess.DataAccess;
 using SQLDBAccess.ErrorHandling;
-using SQLDBAccess.Models;
+using Plagiator.Music.Models;
 using System;
 using System.Collections;
 using System.Linq;
@@ -15,32 +15,35 @@ namespace SQLDBAccess.Controllers
     [Route("api/[controller]")]
     public class StyleController : ControllerBase
     {
-        private readonly PlagiatorContext Context;
+        private ISongRepository SongRepository;
 
-        public StyleController(PlagiatorContext context)
+        public StyleController(ISongRepository SongRepository)
         {
-            Context = context;
+            this.SongRepository = SongRepository;
         }
         [EnableCors]
         [HttpGet]
         public async Task<ActionResult<IEnumerable>> GetStyles(int pageNo = 1, int pageSize = 10, string startWith = null)
         {
-            if (string.IsNullOrEmpty(startWith))
-                return await Context.Style.OrderBy(x => x.Name).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
-            else
-                return await Context.Style.OrderBy(x => x.Name).Where(x => x.Name.StartsWith(startWith)).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
+            var totaStyles = await SongRepository.GetNumberOfStyles(pageNo, pageSize, startWith);
+            var styles = await SongRepository.GetStyles(pageNo, pageSize, startWith);
+            var retObj = new
+            {
+                page = pageNo,
+                totalPages = (int)Math.Ceiling((double)totaStyles / pageSize),
+                styles
+            };
+            return Ok(new ApiOKResponse(retObj));
         }
 
         // GET: api/Style/5
         [HttpGet("{styleId}")]
         public async Task<IActionResult> GetStyle(int styleId)
         {
-            var styles = await Context.Style.FindAsync(styleId);
+            var styles = await SongRepository.GetStyleById(styleId);
 
             if (styles == null)
-            {
                 return NotFound(new ApiResponse(404));
-            }
 
             return Ok(new ApiOKResponse(styles));
         }
@@ -54,19 +57,15 @@ namespace SQLDBAccess.Controllers
                 return BadRequest(new ApiBadRequestResponse("Id passed in url does not match id passed in body."));
             }
 
-            var styles = await Context.Style.FindAsync(styleId);
-            if (styles == null)
-                return NotFound(new ApiResponse(404));
             try
             {
-                Context.Entry(await Context.Style.FirstOrDefaultAsync(x => x.Id == styleId)).CurrentValues.SetValues(style);
-                await Context.SaveChangesAsync();
+                var stylete = await SongRepository.UpdateStyle(style);
+                return Ok(new ApiOKResponse(stylete));
             }
-            catch (Exception ex)
+            catch (ApplicationException)
             {
-                return Conflict(new ApiResponse(409, "There is already a style with that name."));
+                return NotFound(new ApiResponse(404, "No style with that id"));
             }
-            return Ok(new ApiOKResponse(style));
         }
 
         // POST: api/Style
@@ -75,34 +74,26 @@ namespace SQLDBAccess.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    Context.Style.Add(style);
-                    await Context.SaveChangesAsync();
-                }
-                catch (DbUpdateException ex)
-                {
-                    return Conflict(new ApiResponse(409, "There is already a style with that name."));
-                }
-                return Ok(new ApiOKResponse(style));
+                    var stylete = await SongRepository.AddStyle(style);
+                    return Ok(new ApiOKResponse(stylete));               
             }
             else
-            {
                 return BadRequest(new ApiBadRequestResponse(ModelState));
-            }
         }
 
         // DELETE: api/Style/5
         [HttpDelete("{styleId}")]
         public async Task<ActionResult> DeleteStyle(int styleId)
         {
-            var styleItem = await Context.Style.FindAsync(styleId);
-            if (styleItem == null)
-                return NotFound(new ApiResponse(404));
-
-            Context.Style.Remove(styleItem);
-            await Context.SaveChangesAsync();
-            return Ok(new ApiOKResponse(styleItem));
+            try
+            {
+                await SongRepository.DeleteStyle(styleId);
+                return Ok(new ApiOKResponse("Record deleted"));
+            }
+            catch (ApplicationException)
+            {
+                return NotFound(new ApiResponse(404, "No style with that id"));
+            }
         }
     }
 }

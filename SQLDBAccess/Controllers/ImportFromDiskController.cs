@@ -1,12 +1,12 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Microsoft.AspNetCore.Mvc;
-using Plagiator.Mucic.Utilities;
+using Plagiator.Music.SongUtilities;
 using Plagiator.Music;
 using Serilog;
 using SQLDBAccess.DataAccess;
 using SQLDBAccess.ErrorHandling;
 using SQLDBAccess.Helpers;
-using SQLDBAccess.Models;
+using Plagiator.Music.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,33 +19,32 @@ namespace SQLDBAccess.Controllers
     [Route("api/[controller]")]
     public class ImportFromDiskController : ControllerBase
     {
-        private readonly PlagiatorContext Context;
-        public ImportFromDiskController(PlagiatorContext context)
+        private ISongRepository SongRepository;
+        public ImportFromDiskController(PlagiatorContext context, ISongRepository SongRepository)
         {
-            Context = context;
+            this.SongRepository = SongRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult> ImportMidis(string musicFolderPath = "C:\\music\\midi")
         {
+            int count = 0;
             try
             {
                 var styles = Directory.GetDirectories(musicFolderPath);
                 foreach (var stylePath in styles)
                 {
                     var styleName = FileSystemUtils.GetLastDirectoryName(stylePath);
-                    Style style = Context.Style.Where(s => s.Name == styleName).FirstOrDefault();
+                    Style style = await SongRepository.GetStyleByName(styleName);
                     if (style == null)
                     {
-                        style = new Style() { Name = styleName };
-                        Context.Style.Add(style);
-                        await Context.SaveChangesAsync();
+                        await SongRepository.AddStyle(new Style() { Name = styleName });
                     }
                     var bandsPaths = Directory.GetDirectories(stylePath);
                     foreach (var bandPath in bandsPaths)
                     {
                         var bandName = FileSystemUtils.GetLastDirectoryName(bandPath);
-                        Band band = Context.Band.Where(b => b.Name == bandName).FirstOrDefault();
+                        Band band = await SongRepository.GetBandByName(bandName);
                         if (band == null)
                         {
                             band = new Band()
@@ -53,54 +52,96 @@ namespace SQLDBAccess.Controllers
                                 Name = bandName,
                                 Style = style
                             };
-                            Context.Band.Add(band);
-                            await Context.SaveChangesAsync();
+                            await SongRepository.AddBand(new Band()
+                            {
+                                Name = bandName,
+                                Style = style
+                            });
                         }
                         var songsPaths = Directory.GetFiles(bandPath);
                         foreach (var songPath in songsPaths)
                         {
-                            var lelo = MidiFile.Read(songPath, null);
-                            var chunkitos = lelo.Chunks;
-
-                            var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
-                            string normalizedMidiBase64encoded = "";
+                            if (!songPath.ToLower().EndsWith(".mid")) continue;
                             try
                             {
-                                normalizedMidiBase64encoded = NormalizedSong.GetSongAsBase64EncodedMidi(originalMidiBase64encoded);
+                                var lelo = MidiFile.Read(songPath, null);
                             }
                             catch(Exception ex)
                             {
-                                Log.Error(ex, $"Failes to normalize song {Path.GetFileName(songPath)}");
+                                Log.Error(ex, $"Song {songPath} esta podrida");
+                                continue;
                             }
+
+                            var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
+                            //string normalizedMidiBase64encoded = "";
+                            //try
+                            //{
+                            //    normalizedMidiBase64encoded = NormalizedSong.GetSongAsBase64EncodedMidi(originalMidiBase64encoded);
+                            //}
+                            //catch (Exception ex)
+                            //{
+                            //    Log.Error(ex, $"Failed to normalize song {Path.GetFileName(songPath)}");
+                            //}
                             Song song = new Song()
                             {
                                 Name = Path.GetFileName(songPath),
                                 Band = band,
                                 Style = style,
                                 OriginalMidiBase64Encoded = originalMidiBase64encoded,
-                                 NormalizedMidiBase64Encoded= normalizedMidiBase64encoded
+                                NormalizedMidiBase64Encoded = null
                             };
+                            song = MidiProcessing.ComputeSongStats(song);
+                            song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
+                
                             try
                             {
-                                Context.Song.Add(song);
-                                await Context.SaveChangesAsync();
+                                await SongRepository.AddSong(song);
                             }
                             catch (Exception ex)
                             {
 
                             }
-
                         }
-
                     }
                 }
             }
             catch (Exception e)
             {
-
+                Log.Error(e, $"Exception raised when running ImportMidis");
             }
-                return Ok(new ApiOKResponse("All files processed"));
-   
+            return Ok(new ApiOKResponse("All files processed"));
+
+        }
+
+        [HttpGet]
+        [Route("analize")]
+        public async Task<ActionResult> ProcessSong(string songPath)
+        {
+            if (!songPath.ToLower().EndsWith(".mid")) return BadRequest(new ApiBadRequestResponse("not midi"));
+            try
+            {
+                var lelo = MidiFile.Read(songPath, null);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Song {songPath} esta podrida");
+                BadRequest(new ApiBadRequestResponse("Shit file"));
+            }
+
+            var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
+
+            Song song = new Song()
+            {
+                Name = Path.GetFileName(songPath),
+                OriginalMidiBase64Encoded = originalMidiBase64encoded
+            };
+            var soret = MidiProcessing.GetEventsOfChannel(originalMidiBase64encoded, 9);
+            song = MidiProcessing.ComputeSongStats(song);
+            song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
+
+
+
+            return Ok(new ApiOKResponse("Gracias papi"));
         }
     }
 }

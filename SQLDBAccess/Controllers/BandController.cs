@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SQLDBAccess.DataAccess;
 using SQLDBAccess.ErrorHandling;
-using SQLDBAccess.Models;
+using Plagiator.Music.Models;
 using System;
 using System.Collections;
 using System.Linq;
@@ -14,11 +14,11 @@ namespace SQLDBAccess.Controllers
     [Route("api/[controller]")]
     public class BandController : ControllerBase
     {
-        private readonly PlagiatorContext Context;
+        private ISongRepository SongRepository;
 
-        public BandController(PlagiatorContext context)
+        public BandController( ISongRepository SongRepository)
         {
-            Context = context;
+            this.SongRepository = SongRepository;
         }
         // GET: api/Band?pageSize=10&pageNo=2
         [HttpGet]
@@ -28,26 +28,26 @@ namespace SQLDBAccess.Controllers
             string startWith = null,
             int? styleId = null)
         {
-            if (styleId != null)
+            var totalBands = await SongRepository.GetNumberOfBands(pageNo, pageSize, startWith, styleId);
+
+            var bands = await SongRepository.GetBands(pageNo, pageSize, startWith, styleId);
+            var retObj = new
             {
-                return await Context.Band.Where(x => x.Style.Id == styleId).OrderBy(x => x.Name).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
-            }
-            else if (string.IsNullOrEmpty(startWith))
-                return await Context.Band.OrderBy(x => x.Name).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
-            else
-                return await Context.Band.OrderBy(x => x.Name).Where(x => x.Name.StartsWith(startWith)).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
+                page = pageNo,
+                totalPages = (int)Math.Ceiling((double)totalBands / pageSize),
+                bands
+            };
+            return Ok(new ApiOKResponse(retObj));
         }
 
         // GET: api/Band/5
         [HttpGet("{bandId}")]
         public async Task<IActionResult> GetBand(int bandId)
         {
-            var band = await Context.Band.Include(x => x.Style).FirstOrDefaultAsync(x => x.Id == bandId);
+            var band = await SongRepository.GetBandById(bandId);
 
             if (band == null)
-            {
-                return NotFound(new ApiResponse(404));
-            }
+                return NotFound(new ApiResponse(404, $"No band with id {bandId}"));
 
             return Ok(new ApiOKResponse(band));
         }
@@ -57,23 +57,16 @@ namespace SQLDBAccess.Controllers
         public async Task<ActionResult> PutBand(int bandId, Band band)
         {
             if (band.Id != bandId)
-            {
                 return BadRequest(new ApiBadRequestResponse("Id passed in url does not match id passed in body."));
-            }
-
-            var bands = await Context.Band.FindAsync(bandId);
-            if (bands == null)
-                return NotFound(new ApiResponse(404));
+            
             try
             {
-                Context.Entry(await Context.Band.FirstOrDefaultAsync(x => x.Id == bandId)).CurrentValues.SetValues(band);
-                await Context.SaveChangesAsync();
-                band = await Context.Band.Include(x => x.Style).FirstOrDefaultAsync(x=>x.Id== bandId);
-                return Ok(new ApiOKResponse(band));
+                var bandita = await SongRepository.UpdateBand(band);
+                return Ok(new ApiOKResponse(bandita));
             }
-            catch (Exception ex)
+            catch (ApplicationException)
             {
-                return Conflict(new ApiResponse(409, "There is already a band with that name."));
+                return NotFound(new ApiResponse(404, $"No band with id {bandId}"));
             }
         }
 
@@ -83,17 +76,8 @@ namespace SQLDBAccess.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    Context.Band.Add(band);
-                    await Context.SaveChangesAsync();
-                    band = await Context.Band.Include(x => x.Style).FirstOrDefaultAsync(x => x.Id == band.Id);
-                }
-                catch (DbUpdateException ex)
-                {
-                    return Conflict(new ApiResponse(409, "There is already a band with that name."));
-                }
-                return Ok(new ApiOKResponse(band));
+                var bandita = await SongRepository.AddBand(band);
+                return Ok(new ApiOKResponse(bandita));
             }
             else
             {
@@ -105,13 +89,14 @@ namespace SQLDBAccess.Controllers
         [HttpDelete("{bandId}")]
         public async Task<ActionResult> DeleteBand(int bandId)
         {
-            var bandItem = await Context.Band.Include(x=>x.Style).FirstOrDefaultAsync(x => x.Id == bandId);
-            if (bandItem == null)
-                return NotFound(new ApiResponse(404));
-
-            Context.Band.Remove(bandItem);
-            await Context.SaveChangesAsync();
-            return Ok(new ApiOKResponse(bandItem));
+            try
+            {
+                await SongRepository.DeleteBand(bandId);
+                return Ok(new ApiOKResponse("Record deleted"));
+            }
+            catch (ApplicationException) {
+                return NotFound(new ApiResponse(404, $"No band with id {bandId}"));
+            }
         }
     }
 }

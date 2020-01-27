@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace SQLDBAccess.Models
+namespace Plagiator.Music.Models
 {
     public class Style
     {

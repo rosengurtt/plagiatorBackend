@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Plagiator.Music
+namespace Plagiator.Music.Models
 {
     public enum MusicalEventType
     {

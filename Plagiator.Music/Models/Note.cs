@@ -2,9 +2,8 @@
 using Melanchall.DryWetMidi.Standards;
 using System.Collections.Generic;
 
-namespace Plagiator.Music
+namespace Plagiator.Music.Models
 {
-
     public class Note
     {
         public byte Pitch { get; set; }
@@ -13,7 +12,9 @@ namespace Plagiator.Music
     
         public long EndSinceBeginnintOfSongInTicks { get; set; }
 
-        public GeneralMidi2Program Instrument { get; set; }
+        public List<Bar> Bars { get; set; }
+
+    public GeneralMidi2Program Instrument { get; set; }
 
         public List<PitchBendEvent> PitchBendingEvents { get; set; }
         public List<ControlChangeEvent> ControlChangeEvents { get; set; }

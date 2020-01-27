@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SQLDBAccess.Models;
+using Plagiator.Music.Models;
 
 namespace SQLDBAccess.DataAccess
 {
