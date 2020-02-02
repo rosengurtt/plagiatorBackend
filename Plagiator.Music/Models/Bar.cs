@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System;
 
 namespace Plagiator.Music.Models
 {
@@ -8,16 +8,34 @@ namespace Plagiator.Music.Models
     /// </summary>
     public class Bar
     {
-        public long TicksFromBeginningOfSong { get; set; }
+        public Bar(
+            int barNumber,
+            long ticksFromBeginningOfSong,
+            TimeSignature timeSignature,
+            long tempoInMicrosecondsPerQuarterNote)
+        {
+            BarNumber = barNumber;
+            TicksFromBeginningOfSong = ticksFromBeginningOfSong;
+            TimeSignature = timeSignature;
+            Tempo = new Tempo {
+                MicrosecondsPerQuarterNote = tempoInMicrosecondsPerQuarterNote
+            };
+        }
+        public int BarNumber { get; }
+        public long TicksFromBeginningOfSong { get;  }
         
-        public TimeSignature TimeSignature { get; set; }
+        public TimeSignature TimeSignature { get;  }
 
         /// <summary>
-        /// Microseconds per quarter note
+        /// This flag is used when quantizing the duration of notes
+        /// We aproximate the durations to whole quarters, quavers, etc.
+        /// and we don't want to aproximate a triplet duration by a quaver
         /// </summary>
-        public long Tempo { get; set; }
+        public bool HasTriplets { get; set; }
 
-        public List<Note> Notes { get; set; }
+   
+        public Tempo Tempo { get; }
+
 
     }
 }

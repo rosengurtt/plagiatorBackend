@@ -38,7 +38,7 @@ namespace Plagiator.Music.SongUtilities
 
                 while (currentTick < songDuration && eventCount < chunk.Events.Count)
                 {
-                    var eventito = chunk.Events[eventCount];
+                    var eventito = chunk.Events[eventCount++];
                     currentTick += eventito.DeltaTime;
 
                     if (!percussionNotes && IsPercussionEvent(eventito)) continue;
@@ -76,20 +76,13 @@ namespace Plagiator.Music.SongUtilities
                         {
                             PitchBendEvent maldito = bendito.Clone() as PitchBendEvent;
                             maldito.DeltaTime = currentTick;
-                            notita.PitchBendingEvents.Add(maldito);
+                            notita.PitchBending.Add(new PitchBendItem
+                            {
+                                pitch = maldito.PitchValue,
+                                absTime = maldito.DeltaTime
+                            });
                         }
                     }
-                    if (eventito is ControlChangeEvent)
-                    {
-                        ControlChangeEvent chEv = eventito as ControlChangeEvent;
-                        foreach (var notita in currentNotes)
-                        {
-                            ControlChangeEvent changito = chEv.Clone() as ControlChangeEvent;
-                            changito.DeltaTime = currentTick;
-                            notita.ControlChangeEvents.Add(changito);
-                        }
-                    }
-                    eventCount++;
                 }
             }
             return retObj;
@@ -121,7 +114,7 @@ namespace Plagiator.Music.SongUtilities
                 {
                     Instrument = currentIntrument,
                     Pitch = pitch,
-                    StartSinceBeginningOSongInTicks = currentTick,
+                    StartInTicks = currentTick,
                     Volume = volume
                 };
                 currentNotes.Add(notita);
@@ -131,7 +124,7 @@ namespace Plagiator.Music.SongUtilities
                 var notota = currentNotes.Where(n => n.Pitch == pitch).FirstOrDefault();
                 if (notota != null)
                 {
-                    notota.EndSinceBeginnintOfSongInTicks = currentTick;
+                    notota.EndInTicks = currentTick;
                     retObj.Add(notota);
                     currentNotes.Remove(notota);
                 }

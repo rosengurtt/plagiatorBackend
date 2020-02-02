@@ -1,14 +1,16 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Plagiator.Music.Models;
+using System;
 using System.Collections.Generic;
 
 namespace Plagiator.Music.SongUtilities
 {
     public partial class MidiProcessing
     {
-        public static List<Bar> GetEmptyBarsOfSong(string base64encodedMidiFile)
+        public static List<Bar> GetBarsOfSong(string base64encodedMidiFile)
         {
             List<Bar> retObj = new List<Bar>();
+            int barNumber = 1;
             var midiFile = MidiFile.Read(base64encodedMidiFile);
 
             var ticksPerBeat = GetTicksPerBeatOfSong(base64encodedMidiFile);
@@ -16,7 +18,7 @@ namespace Plagiator.Music.SongUtilities
             var timeSignatureEvents = GetEventsOfType(base64encodedMidiFile, MidiEventType.TimeSignature);
             var setTempoEvents = GetEventsOfType(base64encodedMidiFile, MidiEventType.SetTempo);
             timeSignatureEvents = ConvertDeltaTimeToAccumulatedTime(timeSignatureEvents);
-            setTempoEvents = ConvertDeltaTimeToAccumulatedTime(setTempoEvents);
+            var TempoEvents = QuantizeTempos(ConvertDeltaTimeToAccumulatedTime(setTempoEvents));
 
             //status
             TimeSignatureEvent currentTimeSignature = new TimeSignatureEvent
@@ -27,44 +29,41 @@ namespace Plagiator.Music.SongUtilities
             if (timeSignatureEvents.Count > 0)
                 currentTimeSignature = (TimeSignatureEvent)timeSignatureEvents[0];
 
-            SetTempoEvent currentTempo = new SetTempoEvent
+            var currentTempo = new Tempo
             {
                 MicrosecondsPerQuarterNote = 500000
             };
-            if (setTempoEvents.Count > 0)
-                currentTempo = (SetTempoEvent)setTempoEvents[0];
+
             int timeSigIndex = 0;
             int tempoIndex = 0;
             long currentTick = 0;
 
             while (currentTick < songDurationInTicks)
             {
-                if (currentTick > songDurationInTicks - 5000)
-                {
-
-                }
+                if (TempoEvents.Count > 0)
+                    currentTempo = new Tempo
+                    {
+                        MicrosecondsPerQuarterNote = TempoEvents[tempoIndex].MicrosecondsPerQuarterNote
+                    };
                 long timeOfNextTimeSignatureEvent = songDurationInTicks;
                 if (timeSignatureEvents.Count - 1 > timeSigIndex)
                     timeOfNextTimeSignatureEvent = timeSignatureEvents[timeSigIndex + 1].DeltaTime;
                 long timeOfNextSetTempoEvent = songDurationInTicks;
-                if (setTempoEvents.Count - 1 > tempoIndex)
-                    timeOfNextSetTempoEvent = setTempoEvents[tempoIndex + 1].DeltaTime;
+                if (TempoEvents.Count - 1 > tempoIndex)
+                    timeOfNextSetTempoEvent = TempoEvents[tempoIndex + 1].DeltaTime;
 
                 long lastTickOfBarToBeAdded = currentTimeSignature.Numerator * ticksPerBeat + currentTick;
 
                 while ((lastTickOfBarToBeAdded <= timeOfNextTimeSignatureEvent && lastTickOfBarToBeAdded <= timeOfNextSetTempoEvent) ||
                     (lastTickOfBarToBeAdded > songDurationInTicks))
                 {
-                    var bar = new Bar()
+                    var timeSignature = new TimeSignature
                     {
-                        TimeSignature = new TimeSignature
-                        {
-                            Numerator = currentTimeSignature.Numerator,
-                            Denominator = currentTimeSignature.Denominator
-                        },
-                        Tempo = currentTempo.MicrosecondsPerQuarterNote,
-                        TicksFromBeginningOfSong = currentTick
+                        Numerator = currentTimeSignature.Numerator,
+                        Denominator = currentTimeSignature.Denominator
                     };
+                    var bar = new Bar(barNumber++, currentTick, timeSignature,
+                        currentTempo.MicrosecondsPerQuarterNote);   
                     retObj.Add(bar);
                     currentTick += currentTimeSignature.Numerator * ticksPerBeat;
                     lastTickOfBarToBeAdded += currentTimeSignature.Numerator * ticksPerBeat;
@@ -79,5 +78,35 @@ namespace Plagiator.Music.SongUtilities
             return retObj;
         }
 
+        /// <summary>
+        /// Removes tempo changes that change the tempo by less than 15%
+        /// </summary>
+        /// <param name="evs"></param>
+        /// <returns></returns>
+        private static List<SetTempoEvent> QuantizeTempos(List<MidiEvent> evs)
+        {
+            int threshold = 15; // If the tempo change is less than 15%, ignore it
+            var tempoEvs = new List<SetTempoEvent>();
+            foreach (var ev in evs)
+            {
+                if (!(ev is SetTempoEvent)) continue;
+                var evito = (SetTempoEvent)ev;
+                tempoEvs.Add(evito);
+            }
+            if (tempoEvs.Count == 0) return null;
+            var retObj = new List<SetTempoEvent>();
+            retObj.Add(tempoEvs[0]);
+            for (int i = 0; i < tempoEvs.Count - 1; i++)
+            {
+                var change = Math.Abs(tempoEvs[i].MicrosecondsPerQuarterNote -
+                    tempoEvs[i + 1].MicrosecondsPerQuarterNote);
+                var average = (tempoEvs[i].MicrosecondsPerQuarterNote +
+                    tempoEvs[i + 1].MicrosecondsPerQuarterNote) / 2;
+                var percentChange = (change / average) * 100;
+                if (percentChange > threshold)
+                    retObj.Add(tempoEvs[i + 1]);
+            }
+            return retObj;
+        }
     }
 }

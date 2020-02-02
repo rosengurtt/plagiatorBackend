@@ -28,7 +28,7 @@ namespace Plagiator.Music.SongUtilities
                     new NoteOnEvent
                     {
                         Channel = channels[note.Instrument],
-                        DeltaTime = note.StartSinceBeginningOSongInTicks,
+                        DeltaTime = note.StartInTicks,
                         NoteNumber = new SevenBitNumber(note.Pitch),
                         Velocity = new SevenBitNumber(note.Volume)
                     });
@@ -36,17 +36,17 @@ namespace Plagiator.Music.SongUtilities
                     new NoteOffEvent
                     {
                         Channel = channels[note.Instrument],
-                        DeltaTime = note.EndSinceBeginnintOfSongInTicks,
+                        DeltaTime = note.EndInTicks,
                         NoteNumber = new SevenBitNumber(note.Pitch)
                     });
-                foreach (var bendito in note.PitchBendingEvents)
+                foreach (var bendito in note.PitchBending)
                 {
                     dicky[note.Instrument].Events.Add(
                     new PitchBendEvent
                     {
                         Channel = channels[note.Instrument],
-                        DeltaTime = bendito.DeltaTime,
-                        PitchValue = bendito.PitchValue
+                        DeltaTime = bendito.absTime,
+                        PitchValue = (ushort)bendito.pitch
                     });
                 };
             }

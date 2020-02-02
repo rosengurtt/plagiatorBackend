@@ -49,7 +49,7 @@ namespace SQLDBAccess
             services.AddDbContextPool<PlagiatorContext>(opt => opt.UseSqlServer(connection));
             services.AddControllers();
 
-            services.AddSingleton<ISongRepository, SongRepository>();
+            services.AddTransient<ISongRepository, SongRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -22,7 +22,9 @@ namespace Plagiator.Music.SongUtilities
             foreach (var n in notes)
             {
                 if (!instruments.Contains(n.Instrument))
+                {
                     instruments.Add(n.Instrument);
+                }
             }
             return instruments.OrderBy(x => (int)x).ToList();
         }

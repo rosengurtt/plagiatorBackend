@@ -18,10 +18,11 @@ namespace Plagiator.Music.SongUtilities
                 var midiFile = MidiFile.Read(song.OriginalMidiBase64Encoded);
 
                 song.InitializeStats();
+                song.TicksPerQuarterNote = MidiProcessing.GetTicksPerBeatOfSong(song.OriginalMidiBase64Encoded);
                 song.TotalChunks = midiFile.Chunks.Count;
                 song.DurationInSeconds = GetSongDurationInSeconds(song.OriginalMidiBase64Encoded);
                 song.TimeSignature = GetMainTimeSignatureOfSong(song.OriginalMidiBase64Encoded);
-                song.NumberBars = GetEmptyBarsOfSong(song.OriginalMidiBase64Encoded).Count;
+                song.NumberBars = GetBarsOfSong(song.OriginalMidiBase64Encoded).Count;
                 var channels = new List<FourBitNumber>();
                 var pitches = new List<SevenBitNumber>();
                 var uniquePitches = new List<int>();

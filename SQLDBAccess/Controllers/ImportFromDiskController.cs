@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace SQLDBAccess.Controllers
 {
@@ -38,7 +39,8 @@ namespace SQLDBAccess.Controllers
                     Style style = await SongRepository.GetStyleByName(styleName);
                     if (style == null)
                     {
-                        await SongRepository.AddStyle(new Style() { Name = styleName });
+                        style = new Style() { Name = styleName };
+                        await SongRepository.AddStyle(style);
                     }
                     var bandsPaths = Directory.GetDirectories(stylePath);
                     foreach (var bandPath in bandsPaths)
@@ -52,11 +54,7 @@ namespace SQLDBAccess.Controllers
                                 Name = bandName,
                                 Style = style
                             };
-                            await SongRepository.AddBand(new Band()
-                            {
-                                Name = bandName,
-                                Style = style
-                            });
+                            await SongRepository.AddBand(band);
                         }
                         var songsPaths = Directory.GetFiles(bandPath);
                         foreach (var songPath in songsPaths)
@@ -88,11 +86,11 @@ namespace SQLDBAccess.Controllers
                                 Band = band,
                                 Style = style,
                                 OriginalMidiBase64Encoded = originalMidiBase64encoded,
-                                NormalizedMidiBase64Encoded = null
+                                NormalizedSongSerialized = JsonConvert.SerializeObject(new NormalizedSong(originalMidiBase64encoded))
                             };
                             song = MidiProcessing.ComputeSongStats(song);
                             song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
-                
+                            //var soret = new NormalizedSong(originalMidiBase64encoded);
                             try
                             {
                                 await SongRepository.AddSong(song);
