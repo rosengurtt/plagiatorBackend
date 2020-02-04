@@ -37,30 +37,18 @@ namespace Plagiator.Music.Models
     ///   if there are note changes, the cache is discarded
     /// </summary>
     /// <param name="base64encodedMidi"></param>
-    public class NormalizedSong
-    {
-        /// <summary>
-        /// This is the original midi file, base64 encoded so it can be
-        /// manipulated as a string instead of an array of bytes
-        /// </summary>
-        private string Base64encodedMidi { get; }
-        public int TicksPerBeat { get; }
-        public List<GeneralMidi2Program> Instruments { get; set; }
-
+    public partial class Song
+    {        
+        
         public List<Note> Notes { get; set; }
-        public List<Note> PercussionNotes { get; set; }
-        public List<Bar> Bars { get; }
+        public List<Bar> Bars { get; set; }
 
 
-        public NormalizedSong(string base64encodedMidi)
+        public void NormalizeSong()
         {
-            Base64encodedMidi = base64encodedMidi;
-            TicksPerBeat = MidiProcessing.GetTicksPerBeatOfSong(base64encodedMidi);
-            Notes = MidiProcessing.GetNotesOfSong(base64encodedMidi);
-            PercussionNotes = MidiProcessing.GetNotesOfSong(base64encodedMidi, true);
-            Instruments = MidiProcessing.GetInstruments(Notes);
+            Notes = MidiProcessing.GetNotesOfSong(OriginalMidiBase64Encoded);
 
-            Bars = MidiProcessing.GetBarsOfSong(Base64encodedMidi);
+            Bars = MidiProcessing.GetBarsOfSong(OriginalMidiBase64Encoded);
             _notesOfBar = new Dictionary<int, List<Note>>();
             _instrumentsOfBar = new Dictionary<int, List<GeneralMidi2Program>>();
             foreach(var bar in Bars)
@@ -86,10 +74,10 @@ namespace Plagiator.Music.Models
             var retObj = new List<Note>();
             foreach (var n in Notes)
             {
-                int barLengthInTicks = bar.TimeSignature.Numerator * TicksPerBeat;
+                int barLengthInTicks = bar.TimeSignature.Numerator * (int)TicksPerQuarterNote;
                 var barStart = bar.TicksFromBeginningOfSong;
-                var noteStart = n.StartInTicks;
-                var noteEnd = n.EndInTicks;
+                var noteStart = n.StartSinceBeginningOfSongInTicks;
+                var noteEnd = n.EndSinceBeginningOfSongInTicks;
                 var barEnd = bar.TicksFromBeginningOfSong + barLengthInTicks;
                 if (barEnd < noteStart || noteEnd <= barStart) continue;
           
@@ -97,7 +85,7 @@ namespace Plagiator.Music.Models
                     retObj.Add(n);
             }
             _notesOfBar[bar.BarNumber]= retObj
-                .OrderBy(x=>x.StartInTicks).ToList();
+                .OrderBy(x=>x.StartSinceBeginningOfSongInTicks).ToList();
             return _notesOfBar[bar.BarNumber];
         }
       
@@ -108,10 +96,10 @@ namespace Plagiator.Music.Models
             var retObj = new List<GeneralMidi2Program>();
             foreach (var n in Notes)
             {
-                int barLengthInTicks = bar.TimeSignature.Numerator * TicksPerBeat;
+                int barLengthInTicks = bar.TimeSignature.Numerator * (int)TicksPerQuarterNote;
                 var barStart = bar.TicksFromBeginningOfSong;
-                var noteStart = n.StartInTicks;
-                var noteEnd = n.EndInTicks;
+                var noteStart = n.StartSinceBeginningOfSongInTicks;
+                var noteEnd = n.EndSinceBeginningOfSongInTicks;
                 var barEnd = bar.TicksFromBeginningOfSong + barLengthInTicks;
                 if (barEnd >= noteStart || noteEnd >= barStart) continue;
 
@@ -135,7 +123,7 @@ namespace Plagiator.Music.Models
                 if (n.Instrument == instr)
                     retObj.Add(n);
             }
-            _tracks[instr] = retObj.OrderBy(n => n.StartInTicks).ToList();
+            _tracks[instr] = retObj.OrderBy(n => n.StartSinceBeginningOfSongInTicks).ToList();
             return _tracks[instr];
         }
     }

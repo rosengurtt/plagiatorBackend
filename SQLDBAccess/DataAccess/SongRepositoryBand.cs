@@ -18,15 +18,15 @@ namespace SQLDBAccess.DataAccess
         {
             if (styleId != null)
             {
-                return await Context.Band
+                return await Context.Bands
                     .Where(x => x.Style.Id == styleId).OrderBy(x => x.Name)
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
             }
             else if (string.IsNullOrEmpty(startWith))
-                return await Context.Band.OrderBy(x => x.Name)
+                return await Context.Bands.OrderBy(x => x.Name)
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
             else
-                return await Context.Band.OrderBy(x => x.Name)
+                return await Context.Bands.OrderBy(x => x.Name)
                     .Where(x => x.Name.StartsWith(startWith))
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
         }
@@ -38,42 +38,42 @@ namespace SQLDBAccess.DataAccess
         {
             if (styleId != null)
             {
-                return await Context.Band
+                return await Context.Bands
                     .Where(x => x.Style.Id == styleId).OrderBy(x => x.Name)
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
             }
             else if (string.IsNullOrEmpty(startWith))
-                return await Context.Band.OrderBy(x => x.Name)
+                return await Context.Bands.OrderBy(x => x.Name)
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
             else
-                return await Context.Band.OrderBy(x => x.Name)
+                return await Context.Bands.OrderBy(x => x.Name)
                     .Where(x => x.Name.StartsWith(startWith))
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
         }
 
         public async Task<Band> GetBandById(int bandId)
         {
-            return await Context.Band.Include(x => x.Style)
+            return await Context.Bands.Include(x => x.Style)
                 .FirstOrDefaultAsync(x => x.Id == bandId);
         }
         public async Task<Band> GetBandByName(string name)
         {
-            return await Context.Band.Where(b => b.Name == name).FirstOrDefaultAsync();
+            return await Context.Bands.Where(b => b.Name == name).FirstOrDefaultAsync();
         }
         public async Task<Band> AddBand(Band band)
         {
-            Context.Band.Add(band);
+            Context.Bands.Add(band);
             await Context.SaveChangesAsync();
             return band;
         }
 
         public async Task<Band> UpdateBand(Band band)
         {
-            var bands = await Context.Band.FindAsync(band.Id);
+            var bands = await Context.Bands.FindAsync(band.Id);
             if (bands == null)
                 throw new ApplicationException($"No band with id {band.Id}");
 
-            Context.Entry(await Context.Band
+            Context.Entry(await Context.Bands
                 .FirstOrDefaultAsync(x => x.Id == band.Id))
                 .CurrentValues.SetValues(band);
             await Context.SaveChangesAsync();
@@ -82,11 +82,11 @@ namespace SQLDBAccess.DataAccess
 
         public async Task DeleteBand(int bandId)
         {
-            var bandItem = await Context.Band.FirstOrDefaultAsync(x => x.Id == bandId);
+            var bandItem = await Context.Bands.FirstOrDefaultAsync(x => x.Id == bandId);
             if (bandItem == null)
                 throw new ApplicationException($"No band with id {bandId}");
 
-            Context.Band.Remove(bandItem);
+            Context.Bands.Remove(bandItem);
             await Context.SaveChangesAsync();
         }
 

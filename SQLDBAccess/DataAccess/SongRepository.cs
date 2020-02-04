@@ -17,7 +17,7 @@ namespace SQLDBAccess.DataAccess
 
         public async Task< Song> GetSongById(int songId)
         {
-            return await Context.Song.Include(x => x.Style)
+            return await Context.Songs.Include(x => x.Style)
                 .Include(x => x.Band).FirstOrDefaultAsync(x => x.Id == songId);
         }
 
@@ -28,15 +28,15 @@ namespace SQLDBAccess.DataAccess
         {
             if (bandId != null)
             {
-                return await Context.Song
+                return await Context.Songs
                     .Where(x => x.BandId == bandId).Skip((pageNo - 1) * pageSize)
                     .Take(pageSize).ToListAsync();
             }
             if (string.IsNullOrEmpty(startWith))
-                return await Context.Song.Skip((pageNo - 1) * pageSize)
+                return await Context.Songs.Skip((pageNo - 1) * pageSize)
                     .Take(pageSize).ToListAsync();
             else
-                return await Context.Song.Where(x => x.Name.StartsWith(startWith))
+                return await Context.Songs.Where(x => x.Name.StartsWith(startWith))
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
 
         }
@@ -48,40 +48,40 @@ namespace SQLDBAccess.DataAccess
         {
             if (bandId != null)
             {
-                return await Context.Song
+                return await Context.Songs
                     .Where(x => x.BandId == bandId).Skip((pageNo - 1) * pageSize)
                     .Take(pageSize).CountAsync();
             }
             if (string.IsNullOrEmpty(startWith))
-                return await Context.Song.Skip((pageNo - 1) * pageSize)
+                return await Context.Songs.Skip((pageNo - 1) * pageSize)
                     .Take(pageSize).CountAsync();
             else
-                return await Context.Song.Where(x => x.Name.StartsWith(startWith))
+                return await Context.Songs.Where(x => x.Name.StartsWith(startWith))
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
         }
 
 
         public async Task<Song> UpdateSong(Song song)
         {
-            Context.Entry(await Context.Song.FirstOrDefaultAsync(x => x.Id == song.Id))
+            Context.Entry(await Context.Songs.FirstOrDefaultAsync(x => x.Id == song.Id))
                 .CurrentValues.SetValues(song);
             await Context.SaveChangesAsync();
             return song;
         }
         public async Task<Song> AddSong(Song song)
         {
-            Context.Song.Add(song);
+            Context.Songs.Add(song);
             await Context.SaveChangesAsync();
             return song;
         }
         public async Task DeleteSong(int songId)
         {
-            var songItem = await Context.Song.Include(x => x.Style)
+            var songItem = await Context.Songs.Include(x => x.Style)
                 .FirstOrDefaultAsync(x => x.Id == songId);
             if (songItem == null)
                 throw new ApplicationException($"No song with id {songId}");
 
-            Context.Song.Remove(songItem);
+            Context.Songs.Remove(songItem);
             await Context.SaveChangesAsync();
         }
 
@@ -91,9 +91,9 @@ namespace SQLDBAccess.DataAccess
             string startWith = null)
         {
             if (string.IsNullOrEmpty(startWith))
-                return await Context.Style.OrderBy(x => x.Name).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
+                return await Context.Styles.OrderBy(x => x.Name).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
             else
-                return await Context.Style.OrderBy(x => x.Name).Where(x => x.Name.StartsWith(startWith)).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
+                return await Context.Styles.OrderBy(x => x.Name).Where(x => x.Name.StartsWith(startWith)).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
         }
         public async Task<int> GetNumberOfStyles(
             int pageNo = 1,
@@ -101,10 +101,10 @@ namespace SQLDBAccess.DataAccess
             string startWith = null)
         {
             if (string.IsNullOrEmpty(startWith))
-                return await Context.Style.OrderBy(x => x.Name)
+                return await Context.Styles.OrderBy(x => x.Name)
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
             else
-                return await Context.Style.OrderBy(x => x.Name)
+                return await Context.Styles.OrderBy(x => x.Name)
                     .Where(x => x.Name.StartsWith(startWith))
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
         }

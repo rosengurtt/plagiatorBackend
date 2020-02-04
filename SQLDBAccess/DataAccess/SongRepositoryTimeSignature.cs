@@ -11,7 +11,7 @@ namespace SQLDBAccess.DataAccess
     {
         public async Task<TimeSignature> GetTimeSignature(TimeSignature ts)
         {
-            return await Context.TimeSignature.Where(x => x.Numerator == ts.Numerator &
+            return await Context.TimeSignatures.Where(x => x.Numerator == ts.Numerator &
             x.Denominator == ts.Denominator).FirstOrDefaultAsync();         
         }
     }

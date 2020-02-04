@@ -1,6 +1,6 @@
 ﻿namespace Plagiator.Music.Models
 {
-    public class Song
+    public partial class Song
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -11,7 +11,7 @@
 
         public int? TicksPerQuarterNote { get; set; }
         public string OriginalMidiBase64Encoded { get; set; }
-        public string NormalizedSongSerialized { get; set; }
+   
         public TimeSignature TimeSignature { get; set; }
         public int? TempoInMicrosecondsPerBeat { get; set; }
         public int? TempoInBeatsPerMinute { get; set; }

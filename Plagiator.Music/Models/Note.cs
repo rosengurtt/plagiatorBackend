@@ -10,12 +10,16 @@ namespace Plagiator.Music.Models
         {
             PitchBending = new List<PitchBendItem>();
         }
+        public long Id { get; set; }
 
+        public int SongId { get; set; }
+        public Song Song { get; set; }
         public byte Pitch { get; set; }
         public byte Volume { get; set; }
-        public long StartInTicks { get; set; }
-    
-        public long EndInTicks { get; set; }
+        public long StartSinceBeginningOfSongInTicks { get; set; }
+        public long EndSinceBeginningOfSongInTicks { get; set; }
+        public bool IsPercussion { get; set; }
+
 
         public GeneralMidi2Program Instrument { get; set; }
         public List<PitchBendItem> PitchBending { get; set; }
@@ -24,8 +28,7 @@ namespace Plagiator.Music.Models
         {
             get
             {
-                return (int)(EndInTicks -
-                    StartInTicks);
+                return (int)(EndSinceBeginningOfSongInTicks - StartSinceBeginningOfSongInTicks);
             }
         }
         
@@ -38,8 +41,8 @@ namespace Plagiator.Music.Models
             }
             return new Note
             {
-                EndInTicks = this.EndInTicks,
-                StartInTicks = this.StartInTicks,
+                EndSinceBeginningOfSongInTicks = this.EndSinceBeginningOfSongInTicks,
+                StartSinceBeginningOfSongInTicks = this.StartSinceBeginningOfSongInTicks,
                 Pitch = this.Pitch,
                 Volume = this.Volume,
                 Instrument=this.Instrument,

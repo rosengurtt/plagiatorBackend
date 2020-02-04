@@ -29,10 +29,7 @@ namespace Plagiator.Music.SongUtilities
             if (timeSignatureEvents.Count > 0)
                 currentTimeSignature = (TimeSignatureEvent)timeSignatureEvents[0];
 
-            var currentTempo = new Tempo
-            {
-                MicrosecondsPerQuarterNote = 500000
-            };
+            int currentTempo =  500000;
 
             int timeSigIndex = 0;
             int tempoIndex = 0;
@@ -41,10 +38,7 @@ namespace Plagiator.Music.SongUtilities
             while (currentTick < songDurationInTicks)
             {
                 if (TempoEvents.Count > 0)
-                    currentTempo = new Tempo
-                    {
-                        MicrosecondsPerQuarterNote = TempoEvents[tempoIndex].MicrosecondsPerQuarterNote
-                    };
+                    currentTempo =  (int)TempoEvents[tempoIndex].MicrosecondsPerQuarterNote;
                 long timeOfNextTimeSignatureEvent = songDurationInTicks;
                 if (timeSignatureEvents.Count - 1 > timeSigIndex)
                     timeOfNextTimeSignatureEvent = timeSignatureEvents[timeSigIndex + 1].DeltaTime;
@@ -62,8 +56,14 @@ namespace Plagiator.Music.SongUtilities
                         Numerator = currentTimeSignature.Numerator,
                         Denominator = currentTimeSignature.Denominator
                     };
-                    var bar = new Bar(barNumber++, currentTick, timeSignature,
-                        currentTempo.MicrosecondsPerQuarterNote);   
+                    var bar = new Bar
+                    {
+                        BarNumber = barNumber++,
+                        TicksFromBeginningOfSong = currentTick,
+                        TimeSignature = timeSignature,
+                        TempoInMicrosecondsPerQuarterNote =currentTempo
+                       
+                    };   
                     retObj.Add(bar);
                     currentTick += currentTimeSignature.Numerator * ticksPerBeat;
                     lastTickOfBarToBeAdded += currentTimeSignature.Numerator * ticksPerBeat;

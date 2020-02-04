@@ -2,15 +2,19 @@
 {
     public class PitchBendItem
     {
-        public long absTime {get;set;}
-        public int pitch { get; set; }
-        
+        public long Id { get; set; }
+        public long TicksSiceBeginningOfSong { get; set; }
+        public int Pitch { get; set; }
+
+        public int SongId { get; set; }
+        public Song Song { get; set; }
+
         public PitchBendItem Clone()
         {
             return new PitchBendItem
             {
-                absTime = this.absTime,
-                pitch = this.pitch
+                TicksSiceBeginningOfSong = this.TicksSiceBeginningOfSong,
+                Pitch = this.Pitch
             };
         }
     }

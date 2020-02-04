@@ -8,23 +8,13 @@ namespace Plagiator.Music.Models
     /// </summary>
     public class Bar
     {
-        public Bar(
-            int barNumber,
-            long ticksFromBeginningOfSong,
-            TimeSignature timeSignature,
-            long tempoInMicrosecondsPerQuarterNote)
-        {
-            BarNumber = barNumber;
-            TicksFromBeginningOfSong = ticksFromBeginningOfSong;
-            TimeSignature = timeSignature;
-            Tempo = new Tempo {
-                MicrosecondsPerQuarterNote = tempoInMicrosecondsPerQuarterNote
-            };
-        }
-        public int BarNumber { get; }
-        public long TicksFromBeginningOfSong { get;  }
+
+        public long Id { get; set; }
+        public int BarNumber { get; set; }
+        public long TicksFromBeginningOfSong { get; set; }
         
-        public TimeSignature TimeSignature { get;  }
+        public int TimeSignatureId { get; set; }
+        public TimeSignature TimeSignature { get; set; }
 
         /// <summary>
         /// This flag is used when quantizing the duration of notes
@@ -34,7 +24,7 @@ namespace Plagiator.Music.Models
         public bool HasTriplets { get; set; }
 
    
-        public Tempo Tempo { get; }
+        public int TempoInMicrosecondsPerQuarterNote { get; set; }
 
 
     }

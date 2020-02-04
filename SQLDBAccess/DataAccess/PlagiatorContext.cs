@@ -13,16 +13,24 @@ namespace SQLDBAccess.DataAccess
 
         }
 
-        public DbSet<Style> Style { get; set; }
-        public DbSet<Band> Band { get; set; }
-        public DbSet<Song> Song { get; set; }
-        public DbSet<TimeSignature> TimeSignature { get; set; }
+        public DbSet<Style> Styles { get; set; }
+        public DbSet<Band> Bands { get; set; }
+        public DbSet<Song> Songs { get; set; }
+        public DbSet<TimeSignature> TimeSignatures { get; set; }
+
+        public DbSet<Note> Notes { get; set; }
+        public DbSet<Bar> Bars { get; set; }
+        public DbSet<PitchBendItem> PitchBendItems { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Style>().ToTable("Style");
             modelBuilder.Entity<Band>().ToTable("Band");
             modelBuilder.Entity<Song>().ToTable("Song");
             modelBuilder.Entity<TimeSignature>().ToTable("TimeSignature");
+            modelBuilder.Entity<Note>().ToTable("Note");
+            modelBuilder.Entity<Bar>().ToTable("Bar");
+            modelBuilder.Entity<PitchBendItem>().ToTable("PitchBendItem");
         }
 
     }

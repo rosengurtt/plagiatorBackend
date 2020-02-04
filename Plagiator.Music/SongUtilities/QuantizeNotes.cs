@@ -8,14 +8,14 @@ namespace Plagiator.Music.SongUtilities
 {
     public partial class MidiProcessing
     {
-        public static List<Note> QuantizeNotes(NormalizedSong song)
+        public static List<Note> QuantizeNotes(Song song)
         {
             var retObj = new List<Note>();
             foreach (var bar in song.Bars)
             {
                 foreach (var n in song.NotesOfBar(bar))
                 {
-                    retObj.Add(QuantizeNote(n.Clone(), song.TicksPerBeat, bar.HasTriplets));
+                    retObj.Add(QuantizeNote(n.Clone(), (int)song.TicksPerQuarterNote, bar.HasTriplets));
                 }
             }
             return retObj;
@@ -30,15 +30,15 @@ namespace Plagiator.Music.SongUtilities
         /// <param name="song"></param>
         /// <param name="bar"></param>
         /// <returns></returns>
-        public static bool BarHasTriplets(NormalizedSong song, Bar bar)
+        public static bool BarHasTriplets(Song song, Bar bar)
         {
             var notes = song.NotesOfBar(bar);
-            var lengthsOfTriplets = GetLengthsOfTriplets(song.TicksPerBeat);
+            var lengthsOfTriplets = GetLengthsOfTriplets(song.TicksPerQuarterNote);
             int numberOfTriplets = 0;
             foreach (var n in notes)
             {
                 foreach (var q in lengthsOfTriplets) {
-                    if (DurationIsEssentiallyTheSame(n, q, song.TicksPerBeat))
+                    if (DurationIsEssentiallyTheSame(n, q))
                     {
                         numberOfTriplets++;
                         break;
@@ -57,11 +57,11 @@ namespace Plagiator.Music.SongUtilities
         /// <param name="dur"></param>
         /// <param name="ticksPerBeat"></param>
         /// <returns></returns>
-        private static bool DurationIsEssentiallyTheSame(Note n, int dur, int ticksPerBeat)
+        private static bool DurationIsEssentiallyTheSame(Note n, int dur)
         {
             var dif = Math.Abs(n.DurationInTicks - dur);
             var avg = (n.DurationInTicks + dur) / 2;
-            return (dif * 100 < 10);
+            return (dif * 100/avg < 10);
         }
         /// <summary>
         /// Finds the valid durations of notes that have a duration
@@ -69,10 +69,10 @@ namespace Plagiator.Music.SongUtilities
         /// </summary>
         /// <param name="ticksPerBeat"></param>
         /// <returns></returns>
-        private static List<int> GetLengthsOfTriplets(int ticksPerBeat)
+        private static List<int> GetLengthsOfTriplets(int? ticksPerBeat)
         {
             var retObj = new List<int>();
-            var min = ticksPerBeat / 3;
+            var min = (int)ticksPerBeat / 3;
             for(int i = 0; i < 16; i++)
             {
                 retObj.Add(min * i);
@@ -82,13 +82,13 @@ namespace Plagiator.Music.SongUtilities
 
         private static Note QuantizeNote(Note n, int ticksPerQuarterNote, bool hasTriplets)
         {
-            if ((n.StartInTicks % ticksPerQuarterNote == 0) &&
-                (n.EndInTicks % ticksPerQuarterNote == 0))
+            if ((n.StartSinceBeginningOfSongInTicks % ticksPerQuarterNote == 0) &&
+                (n.EndSinceBeginningOfSongInTicks % ticksPerQuarterNote == 0))
                 return n;
             var retObj = n.Clone();
-            retObj.StartInTicks = QuantizePointInTime(n.StartInTicks,
+            retObj.StartSinceBeginningOfSongInTicks = QuantizePointInTime(n.StartSinceBeginningOfSongInTicks,
                 n.DurationInTicks, ticksPerQuarterNote, hasTriplets);
-            retObj.EndInTicks = QuantizePointInTime(n.EndInTicks,
+            retObj.EndSinceBeginningOfSongInTicks = QuantizePointInTime(n.EndSinceBeginningOfSongInTicks,
              n.DurationInTicks, ticksPerQuarterNote, hasTriplets);
             return retObj;
         }

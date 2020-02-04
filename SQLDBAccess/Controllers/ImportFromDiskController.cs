@@ -86,19 +86,14 @@ namespace SQLDBAccess.Controllers
                                 Band = band,
                                 Style = style,
                                 OriginalMidiBase64Encoded = originalMidiBase64encoded,
-                                NormalizedSongSerialized = JsonConvert.SerializeObject(new NormalizedSong(originalMidiBase64encoded))
                             };
                             song = MidiProcessing.ComputeSongStats(song);
                             song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
-                            //var soret = new NormalizedSong(originalMidiBase64encoded);
-                            try
-                            {
-                                await SongRepository.AddSong(song);
-                            }
-                            catch (Exception ex)
-                            {
-
-                            }
+                            song.NormalizeSong();
+                           
+                            await SongRepository.AddSong(song);
+                                
+                         
                         }
                     }
                 }
