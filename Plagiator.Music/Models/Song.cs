@@ -11,7 +11,9 @@
 
         public int? TicksPerQuarterNote { get; set; }
         public string OriginalMidiBase64Encoded { get; set; }
-   
+
+        public string ProcessedMidiBase64Encoded { get; set; }
+
         public TimeSignature TimeSignature { get; set; }
         public int? TempoInMicrosecondsPerBeat { get; set; }
         public int? TempoInBeatsPerMinute { get; set; }

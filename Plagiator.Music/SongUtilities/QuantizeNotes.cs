@@ -11,12 +11,14 @@ namespace Plagiator.Music.SongUtilities
         public static List<Note> QuantizeNotes(Song song)
         {
             var retObj = new List<Note>();
-            foreach (var bar in song.Bars)
+
+            foreach( var n in song.Notes)
             {
-                foreach (var n in song.NotesOfBar(bar))
-                {
-                    retObj.Add(QuantizeNote(n.Clone(), (int)song.TicksPerQuarterNote, bar.HasTriplets));
-                }
+                int i = 0;
+                while (i < song.Bars.Count &&
+                    song.Bars[i].TicksFromBeginningOfSong < n.EndSinceBeginningOfSongInTicks) i++;
+                retObj.Add(QuantizeNote(n.Clone(), (int)song.TicksPerQuarterNote, song.Bars[i-1].HasTriplets));
+
             }
             return retObj;
         }
@@ -61,6 +63,7 @@ namespace Plagiator.Music.SongUtilities
         {
             var dif = Math.Abs(n.DurationInTicks - dur);
             var avg = (n.DurationInTicks + dur) / 2;
+            if (avg == 0) return true;
             return (dif * 100/avg < 10);
         }
         /// <summary>

@@ -1,3 +1,12 @@
+drop table PitchBendItem
+drop table Note
+drop table TempoChange
+drop table Bar
+drop table Song
+drop table Band
+drop table Style
+drop table TimeSignature
+
 CREATE TABLE [dbo].[TimeSignature](
 	Id int IDENTITY(1,1) NOT NULL,
 	Numerator int NOT NULL,
@@ -132,7 +141,7 @@ CREATE TABLE dbo.Song(
 	NumberTracks int NULL,
 	TimeSignatureId int NULL,
 	OriginalMidiBase64Encoded nvarchar(max) NOT NULL,
-	NormalizedSongSerialized nvarchar(max) NULL,
+	ProcessedMidiBase64Encoded nvarchar(max) NULL,
 	TotalEvents int NULL,
 	TotalNoteEvents int NULL,
 	TotalPitchBendEvents int NULL,
@@ -208,9 +217,20 @@ REFERENCES dbo.Song (Id)
 
 CREATE TABLE PitchBendItem(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	TicksSiceBeginningOfSong bigint NULL,
-	Pitch tinyint NULL,
+	TicksSinceBeginningOfSong bigint NULL,
+	Pitch int NULL,
+	NoteId bigint not null
+) 
+ALTER TABLE PitchBendItem  WITH CHECK ADD  CONSTRAINT FK_PitchBendItem_NoteId FOREIGN KEY(NoteId)
+REFERENCES dbo.Note (Id)
+
+
+
+CREATE TABLE TempoChange(
+	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+	TicksSinceBeginningOfSong bigint NULL,
+	MicrosecondsPerQuarterNote int NULL,
 	SongId int not null
 ) 
-ALTER TABLE PitchBendItem  WITH CHECK ADD  CONSTRAINT FK_PitchBendItem_SongId FOREIGN KEY(SongId)
+ALTER TABLE TempoChange  WITH CHECK ADD  CONSTRAINT FK_TempoChange_SongId FOREIGN KEY(SongId)
 REFERENCES dbo.Song (Id)

@@ -18,40 +18,39 @@ namespace Plagiator.Music.SongUtilities
             long songDuration = GetSongDurationInTicks(base64encodedMidiFile);
             var isSustainPedalOn = false;
             var notesOnBecauseOfSustainPedal = new List<Note>();
+            var instrumentOfChannel = new GeneralMidi2Program[16];
 
-
-            var cleanedChunks = SeparateChannelsIntoDifferentChunks(midiFile.Chunks);
-            if (cleanedChunks.Count > 16)
+            foreach (TrackChunk chunk in midiFile.Chunks)
             {
-                Log.Error("Creation of CleanedChunks produced more than 16 chunks");
-                throw new Exception("Creation of CleanedChunks produced more than 16 chunks");
-            }
-            foreach (TrackChunk chunk in cleanedChunks)
-            {
-                long currentTick = 0;
-                var eventCount = 0;
                 var currentNotes = new List<Note>();
-                var currentIntrument = GeneralMidi2Program.AcousticGrandPiano;
-                var programChangeEvents = GetEventsOfType(chunk, MidiEventType.ProgramChange);
-                if (programChangeEvents.Count > 0)
-                    currentIntrument = GetInstrument(programChangeEvents, 0);
+                long currentTick = 0;
 
-                while (currentTick < songDuration && eventCount < chunk.Events.Count)
+                foreach (MidiEvent eventito in chunk.Events)
                 {
-                    var eventito = chunk.Events[eventCount++];
                     currentTick += eventito.DeltaTime;
 
+                    if (eventito is ProgramChangeEvent)
+                    {
+                        var pg = eventito as ProgramChangeEvent;
+                        instrumentOfChannel[pg.Channel] = (GeneralMidi2Program)pg.ProgramNumber.valor;
+                        continue;
+                    }
 
                     if (IsSustainPedalEventOn(eventito))
+                    {
                         isSustainPedalOn = true;
+                        continue;
+                    }
 
                     if (IsSustainPedalEventOff(eventito))
                     {
                         isSustainPedalOn = false;
                         foreach(var n in notesOnBecauseOfSustainPedal)
                         {
-                            ProcessNoteOff(n.Pitch, currentNotes, retObj, currentTick, currentIntrument);
+                            ProcessNoteOff(n.Pitch, currentNotes, retObj, currentTick, 
+                                n.Instrument);
                         }
+                        continue;
                     }
                     if (eventito is NoteOnEvent)
                     {
@@ -59,14 +58,18 @@ namespace Plagiator.Music.SongUtilities
                         if (noteOnEvent.Velocity > 0 || isSustainPedalOn == false)
                         {
                             ProcessNoteOn(noteOnEvent.NoteNumber, noteOnEvent.Velocity,
-                                currentNotes, retObj, currentTick, currentIntrument,
+                                currentNotes, retObj, currentTick, 
+                                instrumentOfChannel[noteOnEvent.Channel],
                                 IsPercussionEvent(eventito));
                         }
+                        continue;
                     }
                     if (eventito is NoteOffEvent && isSustainPedalOn == false)
                     {
                         NoteOffEvent noteOffEvent = eventito as NoteOffEvent;
-                        ProcessNoteOff(noteOffEvent.NoteNumber, currentNotes, retObj, currentTick, currentIntrument);
+                        ProcessNoteOff(noteOffEvent.NoteNumber, currentNotes, retObj, currentTick,
+                            instrumentOfChannel[noteOffEvent.Channel]);
+                        continue;
                     }
                     if (eventito is PitchBendEvent)
                     {
@@ -77,15 +80,18 @@ namespace Plagiator.Music.SongUtilities
                             maldito.DeltaTime = currentTick;
                             notita.PitchBending.Add(new PitchBendItem
                             {
+                                Note = notita,
                                 Pitch = maldito.PitchValue,
-                                TicksSiceBeginningOfSong = maldito.DeltaTime
+                                TicksSinceBeginningOfSong = maldito.DeltaTime
                             });
                         }
+                        continue;
                     }
                 }
             }
             return retObj;
         }
+
 
         private static bool IsSustainPedalEventOn(MidiEvent eventito)
         {
@@ -104,7 +110,7 @@ namespace Plagiator.Music.SongUtilities
 
 
         private static void ProcessNoteOn(byte pitch, byte volume, List<Note> currentNotes,
-                List<Note> retObj, long currentTick, GeneralMidi2Program currentIntrument,
+                List<Note> retObj, long currentTick, GeneralMidi2Program instrument,
                 bool isPercussion)
         {
 
@@ -112,7 +118,7 @@ namespace Plagiator.Music.SongUtilities
             {
                 var notita = new Note
                 {
-                    Instrument = currentIntrument,
+                    Instrument = instrument,
                     Pitch = pitch,
                     StartSinceBeginningOfSongInTicks = currentTick,
                     Volume = volume,
@@ -132,9 +138,9 @@ namespace Plagiator.Music.SongUtilities
             }
         }
         private static void ProcessNoteOff(byte pitch, List<Note> currentNotes,
-         List<Note> retObj, long currentTick, GeneralMidi2Program currentIntrument)
+         List<Note> retObj, long currentTick, GeneralMidi2Program intrument)
         {
-            ProcessNoteOn(pitch, 0, currentNotes, retObj, currentTick, currentIntrument, false);
+            ProcessNoteOn(pitch, 0, currentNotes, retObj, currentTick, intrument, false);
         }
 
         private static bool IsPercussionEvent(MidiEvent eventito)

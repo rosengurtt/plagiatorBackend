@@ -59,6 +59,7 @@ namespace SQLDBAccess.Controllers
                         var songsPaths = Directory.GetFiles(bandPath);
                         foreach (var songPath in songsPaths)
                         {
+                            count++;
                             if (!songPath.ToLower().EndsWith(".mid")) continue;
                             try
                             {
@@ -92,8 +93,11 @@ namespace SQLDBAccess.Controllers
                             song.NormalizeSong();
                            
                             await SongRepository.AddSong(song);
-                                
-                         
+
+                            var outputPath = Path.Combine(@"C:\music\procesados", song.Name);
+                            var bytes = Convert.FromBase64String(song.ProcessedMidiBase64Encoded);
+                            System.IO.File.WriteAllBytes(outputPath, bytes);
+
                         }
                     }
                 }

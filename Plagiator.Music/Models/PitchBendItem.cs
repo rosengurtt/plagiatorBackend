@@ -3,17 +3,17 @@
     public class PitchBendItem
     {
         public long Id { get; set; }
-        public long TicksSiceBeginningOfSong { get; set; }
-        public int Pitch { get; set; }
+        public long TicksSinceBeginningOfSong { get; set; }
+        public ushort Pitch { get; set; }
 
-        public int SongId { get; set; }
-        public Song Song { get; set; }
+        public long NoteId { get; set; }
+        public Note Note { get; set; }
 
         public PitchBendItem Clone()
         {
             return new PitchBendItem
             {
-                TicksSiceBeginningOfSong = this.TicksSiceBeginningOfSong,
+                TicksSinceBeginningOfSong = this.TicksSinceBeginningOfSong,
                 Pitch = this.Pitch
             };
         }
