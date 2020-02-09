@@ -25,7 +25,8 @@ namespace Plagiator.Music.SongUtilities
                 {
                     chunkito = AddEventsOfNote(chunkito, n, 9);
                 }
-                else {
+                else
+                {
                     if (!(instrumentsChannels.Keys).ToList().Contains(n.Instrument))
                     {
                         byte channel = GetFreeChannelForNote(song, instrumentsChannels, n);
@@ -33,8 +34,8 @@ namespace Plagiator.Music.SongUtilities
                         chunkito = AddProgramChangeEventToChunk(chunkito, channel,
                             n.StartSinceBeginningOfSongInTicks, (byte)n.Instrument);
                     }
-            }
-                chunkito = AddEventsOfNote(chunkito, n, instrumentsChannels[n.Instrument]);
+                    chunkito = AddEventsOfNote(chunkito, n, instrumentsChannels[n.Instrument]);
+                }
             }
 
 

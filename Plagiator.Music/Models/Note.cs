@@ -31,11 +31,11 @@ namespace Plagiator.Music.Models
                 return (int)(EndSinceBeginningOfSongInTicks - StartSinceBeginningOfSongInTicks);
             }
         }
-        
+
         public Note Clone()
         {
             var bendItems = new List<PitchBendItem>();
-            foreach( var b in PitchBending)
+            foreach (var b in PitchBending)
             {
                 bendItems.Add(b.Clone());
             }
@@ -45,8 +45,9 @@ namespace Plagiator.Music.Models
                 StartSinceBeginningOfSongInTicks = this.StartSinceBeginningOfSongInTicks,
                 Pitch = this.Pitch,
                 Volume = this.Volume,
-                Instrument=this.Instrument,
-                PitchBending = bendItems
+                Instrument = this.Instrument,
+                PitchBending = bendItems,
+                IsPercussion = this.IsPercussion
             };
         }
 

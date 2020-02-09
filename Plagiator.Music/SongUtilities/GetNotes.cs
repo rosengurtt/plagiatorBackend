@@ -147,7 +147,8 @@ namespace Plagiator.Music.SongUtilities
         {
             if (!(eventito is ChannelEvent)) return false;
             var chEv = eventito as ChannelEvent;
-            if (chEv.Channel == 9) return true;
+            if (chEv.Channel == 9) 
+                return true;
             return false;
         }
 
