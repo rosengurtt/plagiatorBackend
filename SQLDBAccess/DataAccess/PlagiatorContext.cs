@@ -24,6 +24,8 @@ namespace SQLDBAccess.DataAccess
 
         public DbSet<TempoChange> TempoChanges { get; set; }
 
+        public DbSet<SongVersion> SongVersions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Style>().ToTable("Style");
@@ -34,6 +36,7 @@ namespace SQLDBAccess.DataAccess
             modelBuilder.Entity<Bar>().ToTable("Bar");
             modelBuilder.Entity<PitchBendItem>().ToTable("PitchBendItem");
             modelBuilder.Entity<TempoChange>().ToTable("TempoChange");
+            modelBuilder.Entity<SongVersion>().ToTable("SongVersion");
         }
 
     }

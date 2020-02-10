@@ -12,8 +12,8 @@ namespace Plagiator.Music.Models
         }
         public long Id { get; set; }
 
-        public int SongId { get; set; }
-        public Song Song { get; set; }
+        public int SongVersionId { get; set; }
+        public SongVersion SongVersion { get; set; }
         public byte Pitch { get; set; }
         public byte Volume { get; set; }
         public long StartSinceBeginningOfSongInTicks { get; set; }

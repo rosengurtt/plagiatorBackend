@@ -40,7 +40,8 @@ namespace Plagiator.Music.Models
     public partial class Song
     {        
         
-        public List<Note> Notes { get; set; }
+       // public List<Note> Notes { get; set; }
+       public List<SongVersion> Versions { get; set; }
         public List<Bar> Bars { get; set; }
 
         public List<TempoChange> TempoChanges { get; set; }
@@ -48,8 +49,13 @@ namespace Plagiator.Music.Models
         public void NormalizeSong()
         {
             _notesOfBar = new Dictionary<int, List<Note>>();
-           
-            Notes = MidiProcessing.GetNotesOfSong(OriginalMidiBase64Encoded);
+            Versions = new List<SongVersion>();
+
+            Versions.Add (new SongVersion()
+            {
+                Notes = MidiProcessing.GetNotesOfSong(OriginalMidiBase64Encoded),
+                 VersionNumber=0
+            });
 
             Bars = MidiProcessing.GetBarsOfSong(OriginalMidiBase64Encoded);
 
@@ -57,9 +63,9 @@ namespace Plagiator.Music.Models
             {
                 bar.HasTriplets = MidiProcessing.BarHasTriplets(this, bar);
             }
-            Notes = MidiProcessing.QuantizeNotes(this);
+            Versions[0].Notes = MidiProcessing.QuantizeNotes(this, 0);
             TempoChanges = MidiProcessing.GetTempoChanges(this);
-            ProcessedMidiBase64Encoded = MidiProcessing.GetMidiFromNotes(this);
+            ProcessedMidiBase64Encoded = MidiProcessing.GetMidiFromNotes(this, 0);
         }
 
 
@@ -69,12 +75,12 @@ namespace Plagiator.Music.Models
         private Dictionary<int, List<Note>> _notesOfBar { get; set; }
         private Dictionary<int, List<GeneralMidi2Program>> _instrumentsOfBar { get; set; }
 
-        public List<Note> NotesOfBar(Bar bar)
+        public List<Note> NotesOfBar(Bar bar, int songVersion)
         {
             if (_notesOfBar.ContainsKey(bar.BarNumber))
                 return _notesOfBar[bar.BarNumber];
             var retObj = new List<Note>();
-            foreach (var n in Notes)
+            foreach (var n in Versions[songVersion].Notes)
             {
                 int barLengthInTicks = bar.TimeSignature.Numerator * (int)TicksPerQuarterNote;
                 var barStart = bar.TicksFromBeginningOfSong;

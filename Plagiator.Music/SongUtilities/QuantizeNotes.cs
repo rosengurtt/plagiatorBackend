@@ -8,11 +8,11 @@ namespace Plagiator.Music.SongUtilities
 {
     public partial class MidiProcessing
     {
-        public static List<Note> QuantizeNotes(Song song)
+        public static List<Note> QuantizeNotes(Song song, int songVersion)
         {
             var retObj = new List<Note>();
 
-            foreach( var n in song.Notes)
+            foreach( var n in song.Versions[songVersion].Notes)
             {
                 int i = 0;
                 while (i < song.Bars.Count &&
@@ -34,7 +34,7 @@ namespace Plagiator.Music.SongUtilities
         /// <returns></returns>
         public static bool BarHasTriplets(Song song, Bar bar)
         {
-            var notes = song.NotesOfBar(bar);
+            var notes = song.NotesOfBar(bar, 0);
             var lengthsOfTriplets = GetLengthsOfTriplets(song.TicksPerQuarterNote);
             int numberOfTriplets = 0;
             foreach (var n in notes)

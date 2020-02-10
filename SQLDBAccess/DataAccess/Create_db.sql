@@ -1,11 +1,12 @@
-drop table PitchBendItem
-drop table Note
-drop table TempoChange
-drop table Bar
-drop table Song
-drop table Band
-drop table Style
-drop table TimeSignature
+ DROP TABLE IF EXISTS  PitchBendItem
+ DROP TABLE IF EXISTS  Note
+ DROP TABLE IF EXISTS  SongVersion
+ DROP TABLE IF EXISTS  TempoChange
+ DROP TABLE IF EXISTS  Bar
+ DROP TABLE IF EXISTS  Song
+ DROP TABLE IF EXISTS  Band
+ DROP TABLE IF EXISTS  Style
+ DROP TABLE IF EXISTS  TimeSignature
 
 CREATE TABLE [dbo].[TimeSignature](
 	Id int IDENTITY(1,1) NOT NULL,
@@ -186,6 +187,12 @@ GO
 ALTER TABLE dbo.Song CHECK CONSTRAINT FK_Song_TimeSignature
 GO
 
+CREATE TABLE SongVersion(
+	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+	VersionNumber int not null,
+	SongId int not null
+) 
+
 
 CREATE TABLE dbo.Note(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
@@ -195,10 +202,10 @@ CREATE TABLE dbo.Note(
 	EndSinceBeginningOfSongInTicks bigint NOT NULL,
 	Instrument tinyint NOT NULL,
 	IsPercussion bit null,
-	SongId int not null
+	SongVersionId int not null
 )
-ALTER TABLE Note  WITH CHECK ADD  CONSTRAINT FK_Note_SongId FOREIGN KEY(SongId)
-REFERENCES dbo.Song (Id)
+ALTER TABLE Note  WITH CHECK ADD  CONSTRAINT FK_Note_SongVersionId FOREIGN KEY(SongVersionId)
+REFERENCES dbo.SongVersion (Id)
 
 CREATE TABLE Bar(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,

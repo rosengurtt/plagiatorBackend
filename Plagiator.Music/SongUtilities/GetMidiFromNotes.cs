@@ -12,36 +12,49 @@ namespace Plagiator.Music.SongUtilities
 {
     public partial class MidiProcessing
     {
-        public static string GetMidiFromNotes(Song song)
+        public static string GetMidiFromNotes(Song song, int songVersion)
         {
             var mf = new MidiFile();
             mf.TimeDivision = new TicksPerQuarterNoteTimeDivision((short)song.TicksPerQuarterNote);
-
-            var chunkito = new TrackChunk();
+            var chunkitos = new Dictionary<GeneralMidi2Program, TrackChunk>();
+            TrackChunk percusionChunk = null;
             var instrumentsChannels = new Dictionary<GeneralMidi2Program, byte>();
-            foreach (var n in song.Notes.OrderBy(n => n.StartSinceBeginningOfSongInTicks))
+            foreach (var n in song.Versions[songVersion].Notes.OrderBy(n => n.StartSinceBeginningOfSongInTicks))
             {
                 if (n.IsPercussion)
                 {
-                    chunkito = AddEventsOfNote(chunkito, n, 9);
+                    if (percusionChunk == null)
+                        percusionChunk = new TrackChunk();
+                    percusionChunk = AddEventsOfNote(percusionChunk, n, 9);
                 }
                 else
                 {
+                    if (!chunkitos.Keys.Contains(n.Instrument))
+                        chunkitos[n.Instrument] = new TrackChunk();
                     if (!(instrumentsChannels.Keys).ToList().Contains(n.Instrument))
                     {
-                        byte channel = GetFreeChannelForNote(song, instrumentsChannels, n);
+                        byte channel = GetFreeChannelForNote(song, instrumentsChannels, n, songVersion);
                         instrumentsChannels[n.Instrument] = channel;
-                        chunkito = AddProgramChangeEventToChunk(chunkito, channel,
+                        chunkitos[n.Instrument] = AddProgramChangeEventToChunk(chunkitos[n.Instrument], channel,
                             n.StartSinceBeginningOfSongInTicks, (byte)n.Instrument);
                     }
-                    chunkito = AddEventsOfNote(chunkito, n, instrumentsChannels[n.Instrument]);
+                    chunkitos[n.Instrument] = AddEventsOfNote(chunkitos[n.Instrument], n, instrumentsChannels[n.Instrument]);
                 }
             }
 
+            var channelIndependentChunkito = new TrackChunk();
+            channelIndependentChunkito = AddSetTempoEvents(channelIndependentChunkito, song.TempoChanges);
+            var allChunks = chunkitos.Values.ToList();
+            if (percusionChunk != null)
+                allChunks.Add(percusionChunk);
+            if (channelIndependentChunkito.Events._events.Count > 0)
+                allChunks.Add(channelIndependentChunkito);
 
-            chunkito = AddSetTempoEvents(chunkito, song.TempoChanges);
-            chunkito.Events._events = MidiProcessing.ConvertAccumulatedTimeToDeltaTime(chunkito.Events.OrderBy(x => x.DeltaTime).ToList());
-            mf.Chunks.Add(chunkito);
+            foreach (var chunky in allChunks)
+            {
+                chunky.Events._events = MidiProcessing.ConvertAccumulatedTimeToDeltaTime(chunky.Events.OrderBy(x => x.DeltaTime).ToList());
+                mf.Chunks.Add(chunky);
+            }
             using (MemoryStream memStream = new MemoryStream(1000000))
             {
                 mf.Write(memStream);
@@ -114,10 +127,11 @@ namespace Plagiator.Music.SongUtilities
         private static byte GetFreeChannelForNote(
             Song song, 
             Dictionary<GeneralMidi2Program, byte> instrumentsChannels, 
-            Note n)
+            Note n,
+            int songVersion)
         {
             var busyChannels = new List<byte>();
-            foreach(var noti in GetSimultaneousNotesOf(song, n))
+            foreach(var noti in GetSimultaneousNotesOf(song, n, songVersion))
             {
                 foreach(var inst in instrumentsChannels.Keys)
                 {
@@ -136,10 +150,10 @@ namespace Plagiator.Music.SongUtilities
             }
             throw (new Exception("There are no enough channels for this song"));
         }
-        private static List<Note> GetSimultaneousNotesOf(Song song, Note n)
+        private static List<Note> GetSimultaneousNotesOf(Song song, Note n, int songVersion)
         {
             var retObj = new List<Note>();
-            foreach (var noti in song.Notes)
+            foreach (var noti in song.Versions[songVersion].Notes)
             {
                 if ((noti.StartSinceBeginningOfSongInTicks < n.EndSinceBeginningOfSongInTicks
                     && noti.EndSinceBeginningOfSongInTicks >= n.EndSinceBeginningOfSongInTicks) ||
