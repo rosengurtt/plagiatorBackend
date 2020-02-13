@@ -72,15 +72,8 @@ namespace SQLDBAccess.Controllers
                             }
 
                             var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
-                            //string normalizedMidiBase64encoded = "";
-                            //try
-                            //{
-                            //    normalizedMidiBase64encoded = NormalizedSong.GetSongAsBase64EncodedMidi(originalMidiBase64encoded);
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Log.Error(ex, $"Failed to normalize song {Path.GetFileName(songPath)}");
-                            //}
+                            originalMidiBase64encoded = MidiProcessing.NormalizeTicksPerQuarterNote(originalMidiBase64encoded);
+
                             Song song = new Song()
                             {
                                 Name = Path.GetFileName(songPath),
@@ -102,9 +95,9 @@ namespace SQLDBAccess.Controllers
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception soreton)
             {
-                Log.Error(e, $"Exception raised when running ImportMidis");
+                Log.Error(soreton, $"Exception raised when running ImportMidis");
             }
             return Ok(new ApiOKResponse("All files processed"));
 

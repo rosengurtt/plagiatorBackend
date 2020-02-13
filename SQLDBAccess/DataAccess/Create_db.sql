@@ -1,5 +1,6 @@
  DROP TABLE IF EXISTS  PitchBendItem
  DROP TABLE IF EXISTS  Note
+ DROP TABLE IF EXISTS  Arpeggio
  DROP TABLE IF EXISTS  SongVersion
  DROP TABLE IF EXISTS  TempoChange
  DROP TABLE IF EXISTS  Bar
@@ -133,7 +134,6 @@ CREATE TABLE dbo.Song(
 	Name nvarchar(500) NOT NULL,
 	BandId int NULL,
 	StyleId int NOT NULL,
-	TicksPerQuarterNote int NOT NULL,
 	TempoInBeatsPerMinute int NULL,
 	TempoInMicrosecondsPerBeat int NULL,
 	NumberBars int NULL,
@@ -241,3 +241,13 @@ CREATE TABLE TempoChange(
 ) 
 ALTER TABLE TempoChange  WITH CHECK ADD  CONSTRAINT FK_TempoChange_SongId FOREIGN KEY(SongId)
 REFERENCES dbo.Song (Id)
+
+CREATE TABLE Arpeggio(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+	SongVersionId int not null,
+	PitchPatternString varchar(600) not null,
+	RythmPatternString varchar(600) not null,
+	OccurrencesString varchar(max) not null
+) 
+ALTER TABLE Arpeggio  WITH CHECK ADD  CONSTRAINT FK_Arpeggio_SongVersionId FOREIGN KEY(SongVersionId)
+REFERENCES dbo.SongVersion (Id)

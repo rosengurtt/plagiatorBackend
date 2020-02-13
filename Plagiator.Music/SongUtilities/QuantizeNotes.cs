@@ -10,6 +10,7 @@ namespace Plagiator.Music.SongUtilities
     {
         public static List<Note> QuantizeNotes(Song song, int songVersion)
         {
+            int standardTicksPerQuarterNote = 96;
             var retObj = new List<Note>();
 
             foreach( var n in song.Versions[songVersion].Notes)
@@ -17,7 +18,7 @@ namespace Plagiator.Music.SongUtilities
                 int i = 0;
                 while (i < song.Bars.Count &&
                     song.Bars[i].TicksFromBeginningOfSong < n.EndSinceBeginningOfSongInTicks) i++;
-                retObj.Add(QuantizeNote(n.Clone(), (int)song.TicksPerQuarterNote, song.Bars[i-1].HasTriplets));
+                retObj.Add(QuantizeNote(n.Clone(), standardTicksPerQuarterNote, song.Bars[i-1].HasTriplets));
 
             }
             return retObj;
@@ -34,8 +35,9 @@ namespace Plagiator.Music.SongUtilities
         /// <returns></returns>
         public static bool BarHasTriplets(Song song, Bar bar)
         {
-            var notes = song.NotesOfBar(bar, 0);
-            var lengthsOfTriplets = GetLengthsOfTriplets(song.TicksPerQuarterNote);
+            int standardTicksPerQuarterNote = 96;
+               var notes = song.NotesOfBar(bar, 0);
+            var lengthsOfTriplets = GetLengthsOfTriplets(standardTicksPerQuarterNote);
             int numberOfTriplets = 0;
             foreach (var n in notes)
             {

@@ -14,8 +14,9 @@ namespace Plagiator.Music.SongUtilities
     {
         public static string GetMidiFromNotes(Song song, int songVersion)
         {
+            var standardTicksPerQuarterNote = 96;
             var mf = new MidiFile();
-            mf.TimeDivision = new TicksPerQuarterNoteTimeDivision((short)song.TicksPerQuarterNote);
+            mf.TimeDivision = new TicksPerQuarterNoteTimeDivision((short)standardTicksPerQuarterNote);
             var chunkitos = new Dictionary<GeneralMidi2Program, TrackChunk>();
             TrackChunk percusionChunk = null;
             var instrumentsChannels = new Dictionary<GeneralMidi2Program, byte>();

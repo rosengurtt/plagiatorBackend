@@ -9,7 +9,7 @@
         public int StyleId { get; set; }
         public Style Style { get; set; }
 
-        public int? TicksPerQuarterNote { get; set; }
+      //  public int? TicksPerQuarterNote { get; set; }
         public string OriginalMidiBase64Encoded { get; set; }
 
         public string ProcessedMidiBase64Encoded { get; set; }
@@ -52,7 +52,6 @@
 
         public void InitializeStats()
         {
-            TicksPerQuarterNote = 0;
             TempoInMicrosecondsPerBeat = null;
             NumberTracks = 0;
             NumberOfTicks = 0;

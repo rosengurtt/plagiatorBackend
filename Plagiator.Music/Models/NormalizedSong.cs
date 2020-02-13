@@ -50,12 +50,15 @@ namespace Plagiator.Music.Models
         {
             _notesOfBar = new Dictionary<int, List<Note>>();
             Versions = new List<SongVersion>();
+            _instruments = new List<GeneralMidi2Program>();
 
-            Versions.Add (new SongVersion()
+            Versions.Add(new SongVersion()
             {
                 Notes = MidiProcessing.GetNotesOfSong(OriginalMidiBase64Encoded),
-                 VersionNumber=0
+                VersionNumber = 0
             });
+            // To be able to get the arpeggios we had to get the notes first
+            Versions[0].Arpeggios = PatternUtilities.FindArpegiosInSong(this);
 
             Bars = MidiProcessing.GetBarsOfSong(OriginalMidiBase64Encoded);
 
@@ -75,14 +78,16 @@ namespace Plagiator.Music.Models
         private Dictionary<int, List<Note>> _notesOfBar { get; set; }
         private Dictionary<int, List<GeneralMidi2Program>> _instrumentsOfBar { get; set; }
 
+        
         public List<Note> NotesOfBar(Bar bar, int songVersion)
         {
+            int standardTicksPerQuarterNote = 96;
             if (_notesOfBar.ContainsKey(bar.BarNumber))
                 return _notesOfBar[bar.BarNumber];
             var retObj = new List<Note>();
             foreach (var n in Versions[songVersion].Notes)
             {
-                int barLengthInTicks = bar.TimeSignature.Numerator * (int)TicksPerQuarterNote;
+                int barLengthInTicks = bar.TimeSignature.Numerator * (int)standardTicksPerQuarterNote;
                 var barStart = bar.TicksFromBeginningOfSong;
                 var noteStart = n.StartSinceBeginningOfSongInTicks;
                 var noteEnd = n.EndSinceBeginningOfSongInTicks;
@@ -97,7 +102,18 @@ namespace Plagiator.Music.Models
             return _notesOfBar[bar.BarNumber];
         }
 
-
+        private List<GeneralMidi2Program> _instruments { get; set; }
+        public List<GeneralMidi2Program> Instruments
+        {
+            get
+            {
+                if (_instruments.Count==0)
+                {
+                    _instruments = MidiProcessing.GetInstruments(this.Versions[0].Notes);
+                }
+                return _instruments;
+            }
+        }
 
     }
 }
