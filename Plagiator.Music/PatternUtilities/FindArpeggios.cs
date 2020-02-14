@@ -7,22 +7,24 @@ namespace Plagiator.Music
 {
     public static partial class PatternUtilities
     {
-        public static List<Arpeggio> FindArpegiosInSong(Song song)
+        public static Dictionary<Arpeggio, ArpeggioOccurrence> FindArpeggiosInSong(Song song)
         {           
-            var retObj = new List<Arpeggio>();
+            var retObj = new Dictionary<Arpeggio, ArpeggioOccurrence>();
             foreach (var instr in song.Instruments)
             {
                 var notes = song.Versions[0].NotesOfInstrument(instr);
-                notes = RemoveBassNotes(notes);
+                var cleanedNotes = RemoveBassNotes(notes);
                 for(int i=3; i < 50;i++)
                 {
-                    var arpis = FindArpeggioOfLength(notes, i);
-                    if (arpis.Count > 0)
-                        retObj = retObj.Concat(arpis).ToList();
+                    var arpis = FindArpeggioOfLength(cleanedNotes, i, song);
+                    foreach (var key in arpis.Keys)
+                        retObj[key] = arpis[key];
 ;                }     
             }
             return retObj;
         }
+
+ 
 
         /// <summary>
         /// Removes bass notes played at the same time as other higher one.
@@ -43,7 +45,8 @@ namespace Plagiator.Music
                     notes[i + j].StartSinceBeginningOfSongInTicks == notes[i].StartSinceBeginningOfSongInTicks)
                     j += 1;
                 if (i + j < orderedNotes.Count())
-                    retObj.Add(notes[i + j]);
+                    retObj.Add(notes[i + j - 1]);
+                i += (j - 1);
             }
             return retObj;
         }
@@ -55,9 +58,9 @@ namespace Plagiator.Music
         /// </summary>
         /// <param name="notes"></param>
         /// <returns></returns>
-        private static List<Arpeggio> FindArpeggioOfLength(List<Note> notes, int length)
+        private static Dictionary<Arpeggio, ArpeggioOccurrence> FindArpeggioOfLength(List<Note> notes, int length, Song song)
         {
-            var retObj = new List<Arpeggio>();
+            var retObj = new Dictionary<Arpeggio, ArpeggioOccurrence>();
             for (int i = 0; i < notes.Count - length; i++)
             {
                 var distances = new long[length];
@@ -79,25 +82,29 @@ namespace Plagiator.Music
                     var arpegito = new Arpeggio()
                     {
                         PitchPattern = GetPitchPatternOfNotesSeq(arpegioNotes),
-                        RythmPattern = arpegioRelativeTimes,
-                        Occurrences=new List<SongInterval>()
-
+                        RythmPattern = arpegioRelativeTimes
                     };
                     var songInt = new SongInterval()
                     {
                         StartInTicksSinceBeginningOfSong = notes[i].StartSinceBeginningOfSongInTicks,
                         EndInTicksSinceBeginningOfSong = notes[i + length].EndSinceBeginningOfSongInTicks
                     };
-                    var arpi = retObj.Where(x => x.IsEqual(arpegito)).FirstOrDefault();
+                    var arpi = retObj.Keys.Where(x => x.IsEqual(arpegito)).FirstOrDefault();
+
+                    var occurs = new List<SongInterval>();
+                    occurs.Add(songInt);
                     if (arpi == null)
                     {
-
-                        arpegito.Occurrences.Add(songInt);
-                        retObj.Add(arpegito);
+                        retObj[arpegito] = new ArpeggioOccurrence()
+                        {
+                            Occurrences = occurs,
+                            SongVersion = song.Versions[0],
+                            Arpeggio = arpegito
+                        };
                     }
                     else
                     {
-                        arpi.Occurrences.Add(songInt);
+                        retObj[arpi].Occurrences.Add(songInt);
                     }
                 }
             }
@@ -136,10 +143,6 @@ namespace Plagiator.Music
         {
             var retObj = new List<int>();
             int gcd = GCD(grandes.ToArray());
-            if (gcd == 0)
-            {
-
-            }
             for (int i = 0; i < grandes.Count; i++)
                 retObj.Add(grandes[i] / gcd);
             return retObj;

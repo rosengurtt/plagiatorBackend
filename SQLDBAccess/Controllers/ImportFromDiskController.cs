@@ -84,8 +84,34 @@ namespace SQLDBAccess.Controllers
                             song = MidiProcessing.ComputeSongStats(song);
                             song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
                             song.NormalizeSong();
-                           
+
+                            //foreach (var arpi in song.Versions[0].Arpeggios)
+                            //{
+                            //    var arpito = await SongRepository.GetArpeggioByPitchPatternAndRythmPattern(
+                            //        arpi.PitchPatternString, arpi.RythmPatternString);
+                            //    if (arpito == null)
+                            //        await SongRepository.AddArpeggio(arpi);
+                            //}
+                            //var backopOcc = song.Versions[0].ArpeggioOccurrences;
+                            //var backopArp = song.Versions[0].Arpeggios;
+                            //if (backopOcc.Count > 0)
+                            //{
+
+                            //}
+
+                            //song.Versions[0].ArpeggioOccurrences = null;
+                            //song.Versions[0].Arpeggios = null;
                             await SongRepository.AddSong(song);
+
+                            //foreach(var arpOc in backopOcc)
+                            //{
+                            //    var arp = arpOc.Arpeggio;
+                            //    var arpito = await SongRepository.GetArpeggioByPitchPatternAndRythmPattern(
+                            //       arp.PitchPatternString, arp.RythmPatternString);
+                            //    arpOc.ArpeggioId = arp.Id;
+                            //    arpOc.SongVersionId = song.Versions[0].Id;
+                            //    await SongRepository.AddArpeggioOccurrence(arpOc);
+                            //}
 
                             var outputPath = Path.Combine(@"C:\music\procesados", song.Name);
                             var bytes = Convert.FromBase64String(song.ProcessedMidiBase64Encoded);

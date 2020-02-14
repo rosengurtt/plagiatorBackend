@@ -126,7 +126,7 @@ namespace SQLDBAccess.DataAccess
         public Task<Style> AddStyle(Style style);
         public Task<Style> UpdateStyle(Style style);
         public Task DeleteStyle(int styleId);
-        public Task<List<Band>> GetBands(int pageNo, int pageSize, string startWith,  int? styleId);
+        public Task<List<Band>> GetBands(int pageNo, int pageSize, string startWith, int? styleId);
         public Task<int> GetNumberOfBands(int pageNo, int pageSize, string startWith, int? styleId);
 
         public Task<Band> GetBandById(int bandId);
@@ -136,5 +136,17 @@ namespace SQLDBAccess.DataAccess
         public Task DeleteBand(int bandId);
 
         public Task<TimeSignature> GetTimeSignature(TimeSignature ts);
+
+        public Task<Arpeggio> GetArpeggioById(int arpeggioId);
+        public Task<Arpeggio> GetArpeggioByPitchPatternAndRythmPattern(
+            string pitchPattern,
+            string rythmPattern);
+        public Task<Arpeggio> AddArpeggio(Arpeggio arpeggio);
+
+        public Task<ArpeggioOccurrence> GetArpeggioOccurrenceById(int arpOcId);
+        public Task<ArpeggioOccurrence> GetArpeggioOccurrencesForSongVersionIdAndArpeggioId(
+            int songVersionId,
+            int arpeggioId);
+        public Task<ArpeggioOccurrence> AddArpeggioOccurrence(ArpeggioOccurrence arpOc);
     }
 }

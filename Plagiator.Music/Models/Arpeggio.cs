@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using System.Text;
 
 namespace Plagiator.Music.Models
 {
@@ -13,11 +12,10 @@ namespace Plagiator.Music.Models
     /// </summary>
     public class Arpeggio
     {
-        public long Id { get; set; }
+        public int Id { get; set; }
 
-        public int SongVersionId { get; set; } 
+        List<ArpeggioOccurrence> ArpeggioOccurrences { get; set; }
 
-        public SongVersion SongVersion { get; set; }
         /// <summary>
         /// Represents the intervals in the arpeggio in semitones
         /// For ex. C G C E C G C E would be
@@ -58,23 +56,7 @@ namespace Plagiator.Music.Models
                 RythmPattern = Array.ConvertAll(value.Split(","), s => int.Parse(s)).ToList();
             }
         }
-        /// <summary>
-        /// The places in the song where they are used
-        /// </summary>
-        [NotMapped]
-        public List<SongInterval> Occurrences { get; set; }
 
-        public string OccurrencesString
-        {
-            get
-            {
-                return Occurrences.Aggregate("", (ac, next) => ac + "," + next.AsString());
-            }
-            set
-            {
-                Occurrences = Array.ConvertAll(value.Split(","), s => SongInterval.FromString(s)).ToList();
-            }
-        }
 
         public List<int> intervals
         {

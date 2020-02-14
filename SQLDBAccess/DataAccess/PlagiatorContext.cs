@@ -27,6 +27,7 @@ namespace SQLDBAccess.DataAccess
         public DbSet<SongVersion> SongVersions { get; set; }
 
         public DbSet<Arpeggio> Arpeggios { get; set; }
+        public DbSet<ArpeggioOccurrence> ArpeggioOccurrences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +41,22 @@ namespace SQLDBAccess.DataAccess
             modelBuilder.Entity<TempoChange>().ToTable("TempoChange");
             modelBuilder.Entity<SongVersion>().ToTable("SongVersion");
             modelBuilder.Entity<Arpeggio>().ToTable("Arpeggio");
+            modelBuilder.Entity<ArpeggioOccurrence>().ToTable("ArpeggioOccurrence");
+
+            modelBuilder.Entity<Style>()
+                .HasAlternateKey(c => c.Name).HasName("IX_StyleName");
+            modelBuilder.Entity<Band>()
+                .HasAlternateKey(c => c.Name).HasName("IX_BandName");
+
+            //modelBuilder.Entity<TimeSignature>()
+            //    .HasAlternateKey(c => new { c.Numerator, c.Denominator })
+            //    .HasName("IX_TimeSignature");
+            //modelBuilder.Entity<Arpeggio>()
+            //    .HasAlternateKey(c => new { c.PitchPatternString, c.RythmPatternString })
+            //    .HasName("IX_Arpeggio_UniquePatterns");
+            //modelBuilder.Entity<ArpeggioOccurrence>()
+            //    .HasAlternateKey(c => new { c.ArpeggioId, c.SongVersionId })
+            //    .HasName("IX_ArpeggioOccurrence_UniqueArpSong");
         }
 
     }

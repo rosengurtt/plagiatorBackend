@@ -13,7 +13,7 @@ namespace Plagiator.Music.Models
         public int VersionNumber { get; set; }
         public List<Note> Notes { get; set; }
 
-        public List<Arpeggio> Arpeggios { get; set; }
+        public List<ArpeggioOccurrence> ArpeggioOccurrences { get; set; }
 
         public List<Note> NotesOfInstrument(GeneralMidi2Program instr)
         {

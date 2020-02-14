@@ -58,7 +58,8 @@ namespace Plagiator.Music.Models
                 VersionNumber = 0
             });
             // To be able to get the arpeggios we had to get the notes first
-            Versions[0].Arpeggios = PatternUtilities.FindArpegiosInSong(this);
+            var arpegiosAndOccurrences= PatternUtilities.FindArpeggiosInSong(this);
+            Versions[0].ArpeggioOccurrences = arpegiosAndOccurrences.Values.ToList();
 
             Bars = MidiProcessing.GetBarsOfSong(OriginalMidiBase64Encoded);
 
