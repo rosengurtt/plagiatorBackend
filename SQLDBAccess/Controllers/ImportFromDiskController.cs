@@ -29,7 +29,6 @@ namespace SQLDBAccess.Controllers
         [HttpGet]
         public async Task<ActionResult> ImportMidis(string musicFolderPath = "C:\\music\\midi")
         {
-            int count = 0;
             try
             {
                 var styles = Directory.GetDirectories(musicFolderPath);
@@ -59,64 +58,8 @@ namespace SQLDBAccess.Controllers
                         var songsPaths = Directory.GetFiles(bandPath);
                         foreach (var songPath in songsPaths)
                         {
-                            count++;
-                            if (!songPath.ToLower().EndsWith(".mid")) continue;
-                            try
-                            {
-                                var lelo = MidiFile.Read(songPath, null);
-                            }
-                            catch(Exception ex)
-                            {
-                                Log.Error(ex, $"Song {songPath} esta podrida");
-                                continue;
-                            }
-
-                            var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
-                            originalMidiBase64encoded = MidiProcessing.NormalizeTicksPerQuarterNote(originalMidiBase64encoded);
-
-                            Song song = new Song()
-                            {
-                                Name = Path.GetFileName(songPath),
-                                Band = band,
-                                Style = style,
-                                OriginalMidiBase64Encoded = originalMidiBase64encoded,
-                            };
-                            song = MidiProcessing.ComputeSongStats(song);
-                            song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
-                            song.NormalizeSong();
-
-                            //foreach (var arpi in song.Versions[0].Arpeggios)
-                            //{
-                            //    var arpito = await SongRepository.GetArpeggioByPitchPatternAndRythmPattern(
-                            //        arpi.PitchPatternString, arpi.RythmPatternString);
-                            //    if (arpito == null)
-                            //        await SongRepository.AddArpeggio(arpi);
-                            //}
-                            //var backopOcc = song.Versions[0].ArpeggioOccurrences;
-                            //var backopArp = song.Versions[0].Arpeggios;
-                            //if (backopOcc.Count > 0)
-                            //{
-
-                            //}
-
-                            //song.Versions[0].ArpeggioOccurrences = null;
-                            //song.Versions[0].Arpeggios = null;
-                            await SongRepository.AddSong(song);
-
-                            //foreach(var arpOc in backopOcc)
-                            //{
-                            //    var arp = arpOc.Arpeggio;
-                            //    var arpito = await SongRepository.GetArpeggioByPitchPatternAndRythmPattern(
-                            //       arp.PitchPatternString, arp.RythmPatternString);
-                            //    arpOc.ArpeggioId = arp.Id;
-                            //    arpOc.SongVersionId = song.Versions[0].Id;
-                            //    await SongRepository.AddArpeggioOccurrence(arpOc);
-                            //}
-
-                            var outputPath = Path.Combine(@"C:\music\procesados", song.Name);
-                            var bytes = Convert.FromBase64String(song.ProcessedMidiBase64Encoded);
-                            System.IO.File.WriteAllBytes(outputPath, bytes);
-
+                            var songita = await SongRepository.GetSongByNameAndBand(Path.GetFileName(songPath), bandName);
+                            if (songita == null) await ProcesameLaSong(songPath, band, style);
                         }
                     }
                 }
@@ -124,6 +67,7 @@ namespace SQLDBAccess.Controllers
             catch (Exception soreton)
             {
                 Log.Error(soreton, $"Exception raised when running ImportMidis");
+                return new StatusCodeResult(500);
             }
             return Ok(new ApiOKResponse("All files processed"));
 
@@ -131,33 +75,71 @@ namespace SQLDBAccess.Controllers
 
         [HttpGet]
         [Route("analize")]
-        public async Task<ActionResult> ProcessSong(string songPath)
+        public async Task<ActionResult> ProcessSong(string songPath, string band, string style)
         {
-            if (!songPath.ToLower().EndsWith(".mid")) return BadRequest(new ApiBadRequestResponse("not midi"));
-            try
-            {
-                var lelo = MidiFile.Read(songPath, null);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Song {songPath} esta podrida");
-                BadRequest(new ApiBadRequestResponse("Shit file"));
-            }
+            if (string.IsNullOrEmpty(songPath)) return BadRequest(new ApiBadRequestResponse("Parameter songPath missing"));
+            if (string.IsNullOrEmpty(band)) return BadRequest(new ApiBadRequestResponse("Parameter band missing"));
+            if (string.IsNullOrEmpty(style)) return BadRequest(new ApiBadRequestResponse("Parameter style missing"));
 
-            var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
-
-            Song song = new Song()
-            {
-                Name = Path.GetFileName(songPath),
-                OriginalMidiBase64Encoded = originalMidiBase64encoded
-            };
-            var soret = MidiProcessing.GetEventsOfChannel(originalMidiBase64encoded, 9);
-            song = MidiProcessing.ComputeSongStats(song);
-            song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
-
-
+            var stylito = await SongRepository.GetStyleByName(style);
+            var bandita = await SongRepository.GetBandByName(band);
+            await ProcesameLaSong(songPath, bandita, stylito);
 
             return Ok(new ApiOKResponse("Gracias papi"));
+        }
+
+        private async Task ProcesameLaSong(string songPath, Band band, Style style)
+        {
+            try
+            {
+                if (!songPath.ToLower().EndsWith(".mid")) return;
+                try
+                {
+                    var lelo = MidiFile.Read(songPath, null);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Song {songPath} esta podrida");
+                    return;
+                }
+
+                var originalMidiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
+                originalMidiBase64encoded = MidiProcessing.NormalizeTicksPerQuarterNote(originalMidiBase64encoded);
+
+                Song song = new Song()
+                {
+                    Name = Path.GetFileName(songPath),
+                    Band = band,
+                    Style = style,
+                    OriginalMidiBase64Encoded = originalMidiBase64encoded,
+                };
+                song = MidiProcessing.ComputeSongStats(song);
+                song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
+                song.NormalizeSong();
+
+                foreach (var arpOc in song.Versions[0].ArpeggioOccurrences)
+                {
+                    var arpi = arpOc.Arpeggio;
+                    var arpito = await SongRepository.GetArpeggioByPitchPatternAndRythmPattern(
+                        arpi.PitchPatternString, arpi.RythmPatternString);
+                    if (arpito != null)
+                    {
+                        arpOc.ArpeggioId = arpito.Id;
+                        arpOc.Arpeggio = arpito;
+                    }
+                }
+
+                await SongRepository.AddSong(song);
+
+
+                var outputPath = Path.Combine(@"C:\music\procesados", song.Name);
+                var bytes = Convert.FromBase64String(song.ProcessedMidiBase64Encoded);
+                System.IO.File.WriteAllBytes(outputPath, bytes);
+            }
+            catch(Exception sorete)
+            {
+
+            }
         }
     }
 }

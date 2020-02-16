@@ -20,6 +20,10 @@ namespace SQLDBAccess.DataAccess
             return await Context.Songs.Include(x => x.Style)
                 .Include(x => x.Band).FirstOrDefaultAsync(x => x.Id == songId);
         }
+        public async Task<Song> GetSongByNameAndBand(string songName, string bandName)
+        {
+            return await Context.Songs.FirstOrDefaultAsync(x => x.Name == songName & x.Band.Name == bandName);
+        }
 
         public async Task<List<Song>> GetSongs(int pageNo = 1,
             int pageSize = 1000,
@@ -115,7 +119,7 @@ namespace SQLDBAccess.DataAccess
         public Task<List<Song>> GetSongs(int page, int pageSize, string startWith, int? bandId);
         public Task<int> GetNumberOfSongs(int page, int pageSize, string startWith, int? bandId);
         public Task<Song> GetSongById(int songId);
-
+        public Task<Song> GetSongByNameAndBand(string songName, string bandName);
         public Task<Song> UpdateSong(Song song);
         public Task<Song> AddSong(Song song);
         public Task DeleteSong(int songId);

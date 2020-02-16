@@ -81,7 +81,7 @@ namespace Plagiator.Music.Models
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public  bool IsEqual(Object obj)
+        public bool IsEqual(Object obj)
         {
             //Check for null and compare run-time types.
             if ((obj == null) || !this.GetType().Equals(obj.GetType()))
@@ -91,8 +91,9 @@ namespace Plagiator.Music.Models
             else
             {
                 Arpeggio arpi = (Arpeggio)obj;
-                for(int i= 0; i < this.PitchPattern.Count;i++)
-                {
+                if (this.PitchPattern.Count != arpi.PitchPattern.Count) return false;
+                for (int i = 0; i < this.PitchPattern.Count; i++)
+                {                    
                     if (this.PitchPattern[i] != arpi.PitchPattern[i]) return false;
                 }
                 for (int i = 0; i < this.RythmPattern.Count; i++)

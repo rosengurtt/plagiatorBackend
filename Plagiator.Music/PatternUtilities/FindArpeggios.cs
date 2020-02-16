@@ -8,23 +8,34 @@ namespace Plagiator.Music
     public static partial class PatternUtilities
     {
         public static Dictionary<Arpeggio, ArpeggioOccurrence> FindArpeggiosInSong(Song song)
-        {           
+        {
             var retObj = new Dictionary<Arpeggio, ArpeggioOccurrence>();
             foreach (var instr in song.Instruments)
             {
                 var notes = song.Versions[0].NotesOfInstrument(instr);
                 var cleanedNotes = RemoveBassNotes(notes);
-                for(int i=3; i < 50;i++)
+
+                for (int i = 3; i < 50; i++)
                 {
                     var arpis = FindArpeggioOfLength(cleanedNotes, i, song);
                     foreach (var key in arpis.Keys)
-                        retObj[key] = arpis[key];
-;                }     
+                    {
+                        // Check if we got already that arpeggio from another instrument track
+                        var arpi = retObj.Keys.Where(x => x.IsEqual(key)).FirstOrDefault();
+                        if (arpi==null) retObj[key] = arpis[key];
+                        else
+                        {
+                            retObj[arpi].Occurrences = retObj[arpi].Occurrences.Concat(arpis[key].Occurrences).ToList();
+                        }
+
+                    }
+                    ;
+                }
             }
             return retObj;
         }
 
- 
+
 
         /// <summary>
         /// Removes bass notes played at the same time as other higher one.
@@ -37,15 +48,15 @@ namespace Plagiator.Music
         {
             var retObj = new List<Note>();
             var orderedNotes = notes.OrderBy(x => x.StartSinceBeginningOfSongInTicks)
-                .ThenBy(y => y.Pitch);
+                .ThenBy(y => y.Pitch).ToList();
             for (int i = 0; i < orderedNotes.Count() - 1; i++)
             {
                 int j = 0;
                 while (i + j < orderedNotes.Count() &&
-                    notes[i + j].StartSinceBeginningOfSongInTicks == notes[i].StartSinceBeginningOfSongInTicks)
+                    orderedNotes[i + j].StartSinceBeginningOfSongInTicks == orderedNotes[i].StartSinceBeginningOfSongInTicks)
                     j += 1;
                 if (i + j < orderedNotes.Count())
-                    retObj.Add(notes[i + j - 1]);
+                    retObj.Add(orderedNotes[i + j - 1]);
                 i += (j - 1);
             }
             return retObj;
@@ -125,9 +136,9 @@ namespace Plagiator.Music
         {
             var retObj = new List<int>();
 
-            for (int i=0; i< notes.Count-1; i++)
+            for (int i = 0; i < notes.Count - 1; i++)
             {
-                var dif =notes[i + 1].StartSinceBeginningOfSongInTicks -
+                var dif = notes[i + 1].StartSinceBeginningOfSongInTicks -
                     notes[i].StartSinceBeginningOfSongInTicks;
                 retObj.Add((int)dif);
             }
@@ -168,9 +179,9 @@ namespace Plagiator.Music
             // We consider that the distance between the corresponding notes of 2
             // consecutive arpeggios must be constant with a tolerance of this threshold 
             int tolerance = 48;
-            for (int i=0; i < distances.Length-1; i++)
+            for (int i = 0; i < distances.Length - 1; i++)
             {
-                for (int j=1; j < distances.Length; j++)
+                for (int j = 1; j < distances.Length; j++)
                 {
                     if (Math.Abs(distances[i] - distances[j]) > tolerance)
                         return false;
@@ -181,25 +192,13 @@ namespace Plagiator.Music
         private static List<int> GetPitchPatternOfNotesSeq(Note[] notes)
         {
             var retObj = new List<int>();
-            for (int i=1; i < notes.Length; i++)
+            for (int i = 1; i < notes.Length; i++)
             {
                 retObj.Add(notes[i].Pitch - notes[0].Pitch);
             }
             return retObj;
         }
-        private static List<int> GeIntervalsOfNotesSeq(Note[] notes)
-        {
-            var retObj = new List<int>();
-            for (int i = 0; i < notes.Length - 1; i++)
-            {
-                for (int j = i + 1; j < notes.Length; j++)
-                {
-                    if (!retObj.Contains((j - i + 48) % 12))
-                        retObj.Add((j - i + 48) % 12);
-                }
-            }
-            return retObj;
-        }
+
 
     }
 }
