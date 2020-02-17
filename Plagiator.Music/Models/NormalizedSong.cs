@@ -57,9 +57,6 @@ namespace Plagiator.Music.Models
                 Notes = MidiProcessing.GetNotesOfSong(OriginalMidiBase64Encoded),
                 VersionNumber = 0
             });
-            // To be able to get the arpeggios we had to get the notes first
-            var arpegiosAndOccurrences= PatternUtilities.FindArpeggiosInSong(this);
-            Versions[0].ArpeggioOccurrences = arpegiosAndOccurrences.Values.ToList();
 
             Bars = MidiProcessing.GetBarsOfSong(OriginalMidiBase64Encoded);
 
@@ -67,7 +64,11 @@ namespace Plagiator.Music.Models
             {
                 bar.HasTriplets = MidiProcessing.BarHasTriplets(this, bar);
             }
-            Versions[0].Notes = MidiProcessing.QuantizeNotes(this, 0);
+            Versions[0].Notes = MidiProcessing.QuantizeNotes(this, 0).ToList();
+
+            var arpegiosAndOccurrences = PatternUtilities.FindArpeggiosInSong(this);
+            Versions[0].ArpeggioOccurrences = arpegiosAndOccurrences.Values.ToList();
+
             TempoChanges = MidiProcessing.GetTempoChanges(this);
             ProcessedMidiBase64Encoded = MidiProcessing.GetMidiFromNotes(this, 0);
         }

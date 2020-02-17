@@ -13,7 +13,7 @@ namespace Plagiator.Music
             foreach (var instr in song.Instruments)
             {
                 var notes = song.Versions[0].NotesOfInstrument(instr);
-                var cleanedNotes = RemoveBassNotes(notes);
+                var cleanedNotes = RemoveBassNotes(notes).ToList();
 
                 for (int i = 3; i < 50; i++)
                 {
@@ -44,7 +44,7 @@ namespace Plagiator.Music
         /// </summary>
         /// <param name="notes"></param>
         /// <returns></returns>
-        private static List<Note> RemoveBassNotes(List<Note> notes)
+        private static IEnumerable<Note> RemoveBassNotes(List<Note> notes)
         {
             var retObj = new List<Note>();
             var orderedNotes = notes.OrderBy(x => x.StartSinceBeginningOfSongInTicks)
@@ -56,10 +56,11 @@ namespace Plagiator.Music
                     orderedNotes[i + j].StartSinceBeginningOfSongInTicks == orderedNotes[i].StartSinceBeginningOfSongInTicks)
                     j += 1;
                 if (i + j < orderedNotes.Count())
-                    retObj.Add(orderedNotes[i + j - 1]);
+                {
+                    yield return orderedNotes[i + j - 1];
+                }
                 i += (j - 1);
             }
-            return retObj;
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace Plagiator.Music
 
                     var arpegito = new Arpeggio()
                     {
-                        PitchPattern = GetPitchPatternOfNotesSeq(arpegioNotes),
+                        PitchPattern = GetPitchPatternOfNotesSeq(arpegioNotes).ToList(),
                         RythmPattern = arpegioRelativeTimes
                     };
                     var songInt = new SongInterval()
@@ -153,6 +154,13 @@ namespace Plagiator.Music
         private static List<int> SimplifyListOfInts(List<int> grandes)
         {
             var retObj = new List<int>();
+            // Simplify cases like 17,15,16 to 1,1,1
+            if (grandes.Min() > 4)
+            {
+                if (grandes.Max() - grandes.Min() <= 2)
+                    return Enumerable.Repeat(1, grandes.Count()).ToList();
+            }
+
             int gcd = GCD(grandes.ToArray());
             for (int i = 0; i < grandes.Count; i++)
                 retObj.Add(grandes[i] / gcd);
@@ -189,14 +197,10 @@ namespace Plagiator.Music
             }
             return true;
         }
-        private static List<int> GetPitchPatternOfNotesSeq(Note[] notes)
+        private static IEnumerable<int> GetPitchPatternOfNotesSeq(Note[] notes)
         {
-            var retObj = new List<int>();
             for (int i = 1; i < notes.Length; i++)
-            {
-                retObj.Add(notes[i].Pitch - notes[0].Pitch);
-            }
-            return retObj;
+                yield return notes[i].Pitch - notes[0].Pitch;
         }
 
 

@@ -8,20 +8,19 @@ namespace Plagiator.Music.SongUtilities
 {
     public partial class MidiProcessing
     {
-        public static List<Note> QuantizeNotes(Song song, int songVersion)
+        public static IEnumerable<Note> QuantizeNotes(Song song, int songVersion)
         {
             int standardTicksPerQuarterNote = 96;
-            var retObj = new List<Note>();
 
             foreach( var n in song.Versions[songVersion].Notes)
             {
                 int i = 0;
                 while (i < song.Bars.Count &&
-                    song.Bars[i].TicksFromBeginningOfSong < n.EndSinceBeginningOfSongInTicks) i++;
-                retObj.Add(QuantizeNote(n.Clone(), standardTicksPerQuarterNote, song.Bars[i-1].HasTriplets));
+                    song.Bars[i].TicksFromBeginningOfSong <= n.EndSinceBeginningOfSongInTicks)
+                    i++;
+                yield return QuantizeNote(n.Clone(), standardTicksPerQuarterNote, song.Bars[i-1].HasTriplets);
 
             }
-            return retObj;
         }
 
         /// <summary>
@@ -74,15 +73,11 @@ namespace Plagiator.Music.SongUtilities
         /// </summary>
         /// <param name="ticksPerBeat"></param>
         /// <returns></returns>
-        private static List<int> GetLengthsOfTriplets(int? ticksPerBeat)
+        private static IEnumerable<int> GetLengthsOfTriplets(int? ticksPerBeat)
         {
-            var retObj = new List<int>();
             var min = (int)ticksPerBeat / 3;
             for(int i = 0; i < 16; i++)
-            {
-                retObj.Add(min * i);
-            }
-            return retObj;
+                yield return min * i;
         }
 
         private static Note QuantizeNote(Note n, int ticksPerQuarterNote, bool hasTriplets)
@@ -92,13 +87,14 @@ namespace Plagiator.Music.SongUtilities
                 return n;
             var retObj = n.Clone();
             retObj.StartSinceBeginningOfSongInTicks = QuantizePointInTime(n.StartSinceBeginningOfSongInTicks,
-                n.DurationInTicks, ticksPerQuarterNote, hasTriplets);
+                n.DurationInTicks, ticksPerQuarterNote, hasTriplets, true);
             retObj.EndSinceBeginningOfSongInTicks = QuantizePointInTime(n.EndSinceBeginningOfSongInTicks,
-             n.DurationInTicks, ticksPerQuarterNote, hasTriplets);
+             n.DurationInTicks, ticksPerQuarterNote, hasTriplets, false);
             return retObj;
         }
 
-        private static long QuantizePointInTime(long point, int durationInTicks, int ticksPerQuarterNote, bool hasTriplets)
+        private static long QuantizePointInTime(long point, int durationInTicks, 
+            int ticksPerQuarterNote, bool hasTriplets, bool pointIsStart)
         {
             // quantum represents the number of ticks that separate 2
             // consecutive quantized points  
@@ -126,13 +122,33 @@ namespace Plagiator.Music.SongUtilities
 
             // Now that we have the quantum, we find which of the left or right
             // points located on quantized values is closer 
-            var leftQuantizedPoint = point - point % quantum;
+            var shift = point % quantum;
+            var leftQuantizedPoint = point - shift;
+            var newDurationUsingLeft = pointIsStart ? durationInTicks + shift : durationInTicks - shift;
             var rightQuantizedPoint = leftQuantizedPoint + quantum;
-            if (point - leftQuantizedPoint <= rightQuantizedPoint - point)
+            var newDurationUsingRight = pointIsStart ? durationInTicks - quantum + shift : durationInTicks + quantum - shift;
+
+            if (point - leftQuantizedPoint < rightQuantizedPoint - point)
                 return leftQuantizedPoint;
-            return rightQuantizedPoint;
+            else if (point - leftQuantizedPoint > rightQuantizedPoint - point)
+                return rightQuantizedPoint;
+            if (NumberOfWholeDivisors(newDurationUsingLeft) < NumberOfWholeDivisors(newDurationUsingRight))
+                return rightQuantizedPoint;
+            else return leftQuantizedPoint;
         }
 
+        private static int NumberOfWholeDivisors(long number)
+        {
+            if (number == 0) return 0;
+            int numberOfDivisors = 0;
+            int i = 2;
+            while (i < Math.Sqrt(number))
+            {
+                if (number % i == 0) numberOfDivisors++;
+                i++;
+            }
+            return numberOfDivisors;
+        }
     
     }
 }
