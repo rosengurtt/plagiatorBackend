@@ -26,6 +26,8 @@ namespace SQLDBAccess.DataAccess
 
         public DbSet<SongVersion> SongVersions { get; set; }
 
+        public DbSet<PitchPattern> PitchPatterns { get; set; }
+        public DbSet<RythmPattern> RythmPatterns { get; set; }
         public DbSet<Arpeggio> Arpeggios { get; set; }
         public DbSet<ArpeggioOccurrence> ArpeggioOccurrences { get; set; }
 
@@ -40,6 +42,8 @@ namespace SQLDBAccess.DataAccess
             modelBuilder.Entity<PitchBendItem>().ToTable("PitchBendItem");
             modelBuilder.Entity<TempoChange>().ToTable("TempoChange");
             modelBuilder.Entity<SongVersion>().ToTable("SongVersion");
+            modelBuilder.Entity<PitchPattern>().ToTable("PitchPattern");
+            modelBuilder.Entity<RythmPattern>().ToTable("RythmPattern");
             modelBuilder.Entity<Arpeggio>().ToTable("Arpeggio");
             modelBuilder.Entity<ArpeggioOccurrence>().ToTable("ArpeggioOccurrence");
 

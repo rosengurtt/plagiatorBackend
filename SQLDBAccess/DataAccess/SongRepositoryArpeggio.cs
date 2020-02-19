@@ -13,13 +13,13 @@ namespace SQLDBAccess.DataAccess
         {
             return await Context.Arpeggios.FindAsync(arpeggioId);
         }
-        public async Task<Arpeggio> GetArpeggioByPitchPatternAndRythmPattern(
-            string pitchPattern,
-            string rythmPattern)
+        public async Task<Arpeggio> GetArpeggioByPitchPatternIdAndRythmPatternId(
+            int pitchPatternId,
+            int rythmPatternId)
         {
             return await Context.Arpeggios
-                .Where(a => a.PitchPatternString== pitchPattern &
-                a.RythmPatternString== rythmPattern).FirstOrDefaultAsync();
+                .Where(a => a.PitchPatternId== pitchPatternId &
+                a.RythmPatternId== rythmPatternId).FirstOrDefaultAsync();
         }
         public async Task<Arpeggio> AddArpeggio(Arpeggio arpeggio)
         {

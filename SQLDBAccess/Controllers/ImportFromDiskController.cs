@@ -120,12 +120,36 @@ namespace SQLDBAccess.Controllers
                 foreach (var arpOc in song.Versions[0].ArpeggioOccurrences)
                 {
                     var arpi = arpOc.Arpeggio;
-                    var arpito = await SongRepository.GetArpeggioByPitchPatternAndRythmPattern(
-                        arpi.PitchPatternString, arpi.RythmPatternString);
-                    if (arpito != null)
+                    // Check if the pitch pattern is already in the db
+                    var pitchPat = arpi.PitchPattern;
+                    var pitchito = await SongRepository.GetPitchPatternByPatternString(pitchPat.AsString);
+                    if (pitchito == null)
                     {
-                        arpOc.ArpeggioId = arpito.Id;
-                        arpOc.Arpeggio = arpito;
+                        pitchito = await SongRepository.AddPitchPattern(pitchPat);
+                    }
+                    arpi.PitchPattern = pitchito;
+                    arpi.PitchPatternId = pitchito.Id;
+
+                    // Check if the rythm pattern is already in the db
+                    var rythmPat = arpi.RythmPattern;
+                    var ritmito = await SongRepository.GetRythmPatternByPatternString(rythmPat.AsString);
+                    if (ritmito == null)
+                    {
+                        ritmito = await SongRepository.AddRythnPattern(rythmPat);
+                    }
+                    arpi.RythmPattern = ritmito;
+                    arpi.RythmPatternId = ritmito.Id;
+
+                    // Check if arpegio is already in the db
+                    if (pitchito != null && ritmito != null)
+                    {
+                        var arpito = await SongRepository.GetArpeggioByPitchPatternIdAndRythmPatternId(
+                            arpi.PitchPatternId, arpi.RythmPatternId);
+                        if (arpito != null)
+                        {
+                            arpOc.ArpeggioId = arpito.Id;
+                            arpOc.Arpeggio = arpito;
+                        }
                     }
                 }
 

@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS  PitchBendItem
 DROP TABLE IF EXISTS  Note
 DROP TABLE IF EXISTS  ArpeggioOccurrence
 DROP TABLE IF EXISTS  Arpeggio
+DROP TABLE IF EXISTS  PitchPattern
+DROP TABLE IF EXISTS  RythmPattern
 DROP TABLE IF EXISTS  SongVersion
 DROP TABLE IF EXISTS  TempoChange
 DROP TABLE IF EXISTS  Bar
@@ -243,11 +245,24 @@ CREATE TABLE TempoChange(
 ALTER TABLE TempoChange  WITH CHECK ADD  CONSTRAINT FK_TempoChange_SongId FOREIGN KEY(SongId)
 REFERENCES dbo.Song (Id)
 
+CREATE TABLE PitchPattern(
+	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+	AsString varchar(600) not null
+	CONSTRAINT IX_PitchPattern_UniquePatterns UNIQUE (AsString)
+) 
+
+CREATE TABLE RythmPattern(
+	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+	AsString varchar(600) not null
+	CONSTRAINT IX_RythmPattern_UniquePatterns UNIQUE (AsString)
+) 
+
+
 CREATE TABLE Arpeggio(
 	Id int IDENTITY(1,1) primary key clustered NOT NULL,
-	PitchPatternString varchar(600) not null,
-	RythmPatternString varchar(600) not null,
-	CONSTRAINT IX_Arpeggio_UniquePatterns UNIQUE (PitchPatternString,RythmPatternString)
+	PitchPatternId int not null,
+	RythmPatternId int not null,
+	CONSTRAINT IX_Arpeggio_UniquePatterns UNIQUE (PitchPatternId,RythmPatternId)
 ) 
 
 CREATE TABLE ArpeggioOccurrence(

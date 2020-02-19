@@ -89,12 +89,18 @@ namespace Plagiator.Music
                     // with the same pitches played regularly
 
                     var arpegioNotes = notes.ToArray().Skip(i).Take(length).ToArray();
-                    var arpegioRelativeTimes = GetRelativeDistancesBetweenConsecutiveNotes(notes.ToArray().Skip(i).Take(length + 1).ToList());
+                    var arpeggioPitches = GetPitchPatternOfNotesSeq(arpegioNotes).ToList();
+                    var arpegioRelativeTimes = GetRelativeDistancesBetweenConsecutiveNotes(notes.ToArray().Skip(i).Take(length + 1).ToList()).ToList();
 
                     var arpegito = new Arpeggio()
                     {
-                        PitchPattern = GetPitchPatternOfNotesSeq(arpegioNotes).ToList(),
-                        RythmPattern = arpegioRelativeTimes
+                        PitchPattern = new PitchPattern() {
+                            PitchesRelativeToFirst = arpeggioPitches
+                        },
+                        RythmPattern = new RythmPattern()
+                        {
+                            RelativeDurations = arpegioRelativeTimes
+                        }
                     };
                     var songInt = new SongInterval()
                     {
@@ -133,48 +139,18 @@ namespace Plagiator.Music
         /// </summary>
         /// <param name="notes"></param>
         /// <returns></returns>
-        private static List<int> GetRelativeDistancesBetweenConsecutiveNotes(List<Note> notes)
+        private static IEnumerable<int> GetRelativeDistancesBetweenConsecutiveNotes(List<Note> notes)
         {
-            var retObj = new List<int>();
 
             for (int i = 0; i < notes.Count - 1; i++)
             {
                 var dif = notes[i + 1].StartSinceBeginningOfSongInTicks -
                     notes[i].StartSinceBeginningOfSongInTicks;
-                retObj.Add((int)dif);
+                yield return (int)dif;
             }
-            return SimplifyListOfInts(retObj);
-        }
-        /// <summary>
-        /// Tries to reduce the ints in a list, so for example if we have
-        /// 4,4,2,4,8 it converts it to 2,2,1,2,4
-        /// </summary>
-        /// <param name="grandes"></param>
-        /// <returns></returns>
-        private static List<int> SimplifyListOfInts(List<int> grandes)
-        {
-            var retObj = new List<int>();
-            // Simplify cases like 17,15,16 to 1,1,1
-            if (grandes.Min() > 4)
-            {
-                if (grandes.Max() - grandes.Min() <= 2)
-                    return Enumerable.Repeat(1, grandes.Count()).ToList();
-            }
-
-            int gcd = GCD(grandes.ToArray());
-            for (int i = 0; i < grandes.Count; i++)
-                retObj.Add(grandes[i] / gcd);
-            return retObj;
-        }
-        static int GCD(int[] numbers)
-        {
-            return numbers.Aggregate(GCD);
         }
 
-        static int GCD(int a, int b)
-        {
-            return b == 0 ? a : GCD(b, a % b);
-        }
+
         /// <summary>
         /// Checks that the integers in the array are all essentially the same value
         /// (that corresponds to a time measured in ticks between 2 notes)
@@ -202,7 +178,45 @@ namespace Plagiator.Music
             for (int i = 1; i < notes.Length; i++)
                 yield return notes[i].Pitch - notes[0].Pitch;
         }
+        /// <summary>
+        /// When we have a repetitive sequence like 2,1,2,1,2,1 we want to keep just
+        /// 2,1 and discard the rest
+        /// </summary>
+        /// <param name="numbers"></param>
+        /// <returns></returns>
+        public static List<int> GetShortestPattern(List<int> numbers)
+        {
+            var divisors = GetDivisorsOfNumber(numbers.Count).OrderByDescending(x => x);
+            foreach (int j in divisors)
+            {
+                int lengthOfGroup = (int)(numbers.Count / j);
+                int i = 0;
+                int n = 1;
+                while (i + n * lengthOfGroup < numbers.Count)
+                {
+                    if (numbers[i] != numbers[i + n * lengthOfGroup]) break;
+                    i++;
+                    if (i == lengthOfGroup)
+                    {
+                        i = 0;
+                        n++;
+                    }
+                }
+                if (i + n * lengthOfGroup == numbers.Count)
+                {
+                    return numbers.Take(lengthOfGroup).ToList();
+                }
+            }
+            return numbers;
+        }
 
+        private static IEnumerable<int> GetDivisorsOfNumber(int number)
+        {
+            for (int i = 1; i <= number; i++)
+            {
+                if (number % i == 0) yield return i;
+            }
+        }
 
     }
 }

@@ -142,9 +142,9 @@ namespace SQLDBAccess.DataAccess
         public Task<TimeSignature> GetTimeSignature(TimeSignature ts);
 
         public Task<Arpeggio> GetArpeggioById(int arpeggioId);
-        public Task<Arpeggio> GetArpeggioByPitchPatternAndRythmPattern(
-            string pitchPattern,
-            string rythmPattern);
+        public Task<Arpeggio> GetArpeggioByPitchPatternIdAndRythmPatternId(
+            int pitchPatternId,
+            int rythmPatternId);
         public Task<Arpeggio> AddArpeggio(Arpeggio arpeggio);
 
         public Task<ArpeggioOccurrence> GetArpeggioOccurrenceById(int arpOcId);
@@ -152,5 +152,18 @@ namespace SQLDBAccess.DataAccess
             int songVersionId,
             int arpeggioId);
         public Task<ArpeggioOccurrence> AddArpeggioOccurrence(ArpeggioOccurrence arpOc);
+
+        Task<PitchPattern> GetPitchPatternById(int pitchPatternId);
+
+
+        Task<RythmPattern> GetRythmPatternById(int rythmPatternId);
+
+        Task<PitchPattern> GetPitchPatternByPatternString(string pitchPatternString);
+
+        Task<PitchPattern> AddPitchPattern(PitchPattern pitchPattern);
+
+        Task<RythmPattern> GetRythmPatternByPatternString(string rythmPatternString);
+
+        Task<RythmPattern> AddRythnPattern(RythmPattern rythnPattern);
     }
 }
