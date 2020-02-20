@@ -9,40 +9,40 @@ namespace SQLDBAccess.DataAccess
 {
     public partial class SongRepository : ISongRepository
     {
-        public async Task<Arpeggio> GetArpeggioById(int arpeggioId)
+        public async Task<MelodyPattern> GetMelodyPatternById(int melodyPatternId)
         {
-            return await Context.Arpeggios.FindAsync(arpeggioId);
+            return await Context.MelodyPatterns.FindAsync(melodyPatternId);
         }
-        public async Task<Arpeggio> GetArpeggioByPitchPatternIdAndRythmPatternId(
+        public async Task<MelodyPattern> GetMelodyPatternByPitchPatternIdAndRythmPatternId(
             int pitchPatternId,
             int rythmPatternId)
         {
-            return await Context.Arpeggios
+            return await Context.MelodyPatterns
                 .Where(a => a.PitchPatternId== pitchPatternId &
                 a.RythmPatternId== rythmPatternId).FirstOrDefaultAsync();
         }
-        public async Task<Arpeggio> AddArpeggio(Arpeggio arpeggio)
+        public async Task<MelodyPattern> AddMelodyPattern(MelodyPattern melodyPattern)
         {
-            Context.Arpeggios.Add(arpeggio);
+            Context.MelodyPatterns.Add(melodyPattern);
             await Context.SaveChangesAsync();
-            return arpeggio;
+            return melodyPattern;
         }
 
-        public async Task<ArpeggioOccurrence> GetArpeggioOccurrenceById(int arpOcId)
+        public async Task<MelodyPatternOccurrence> GetMelodyPatternOccurrenceById(int arpOcId)
         {
-            return await Context.ArpeggioOccurrences.FindAsync(arpOcId);
+            return await Context.MelodyPatternOccurrences.FindAsync(arpOcId);
         }
-        public async Task<ArpeggioOccurrence> GetArpeggioOccurrencesForSongVersionIdAndArpeggioId(
+        public async Task<MelodyPatternOccurrence> GetMelodyPatternOccurrencesForSongVersionIdAndMelodyPatternId(
             int songVersionId,
-            int arpeggioId)
+            int melodyPatternId)
         {
-            return await Context.ArpeggioOccurrences
+            return await Context.MelodyPatternOccurrences
                 .Where(a => a.SongVersionId== songVersionId &
-                a.ArpeggioId==arpeggioId).FirstOrDefaultAsync();
+                a.MelodyPatternId==melodyPatternId).FirstOrDefaultAsync();
         }
-        public async Task<ArpeggioOccurrence> AddArpeggioOccurrence(ArpeggioOccurrence arpOc)
+        public async Task<MelodyPatternOccurrence> AddMelodyPatternOccurrence(MelodyPatternOccurrence arpOc)
         {
-            Context.ArpeggioOccurrences.Add(arpOc);
+            Context.MelodyPatternOccurrences.Add(arpOc);
             await Context.SaveChangesAsync();
             return arpOc;
         }

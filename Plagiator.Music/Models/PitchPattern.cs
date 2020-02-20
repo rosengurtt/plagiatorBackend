@@ -5,11 +5,7 @@ using System.Linq;
 
 namespace Plagiator.Music.Models
 {
-    /// <summary>
-    /// Represents the intervals in the arpeggio in semitones
-    /// For ex. C G C E C G C E would be
-    /// 0 7 0 4
-    /// </summary>
+
     public class PitchPattern
     {
         public int Id { get; set; }
@@ -39,8 +35,16 @@ namespace Plagiator.Music.Models
                     .ConvertAll(value.Split(","), s => int.Parse(s)).ToList();
             }
         }
+        [NotMapped]
+        public int Length
+        {
+            get
+            {
+                return PitchesRelativeToFirst.Count + 1;
+            }
+        }
 
-        public List<Arpeggio> Arpeggios { get; set; }
+        public List<MelodyPattern> MelodyPatterns { get; set; }
 
         public List<int> intervals
         {

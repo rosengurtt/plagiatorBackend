@@ -66,8 +66,8 @@ namespace Plagiator.Music.Models
             }
             Versions[0].Notes = MidiProcessing.QuantizeNotes(this, 0).ToList();
 
-            var arpegiosAndOccurrences = PatternUtilities.FindArpeggiosInSong(this);
-            Versions[0].ArpeggioOccurrences = arpegiosAndOccurrences.Values.ToList();
+            var melodyPatternsWithOccurrences = PatternUtilities.FindMelodyPatternsInSong(this);
+            Versions[0].MelodyPatternOccurrences = melodyPatternsWithOccurrences.Values.ToList();
 
             TempoChanges = MidiProcessing.GetTempoChanges(this);
             ProcessedMidiBase64Encoded = MidiProcessing.GetMidiFromNotes(this, 0);

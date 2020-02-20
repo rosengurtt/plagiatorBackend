@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS  PitchBendItem
 DROP TABLE IF EXISTS  Note
 DROP TABLE IF EXISTS  ArpeggioOccurrence
 DROP TABLE IF EXISTS  Arpeggio
+DROP TABLE IF EXISTS  MelodyPatternOccurrence
+DROP TABLE IF EXISTS  MelodyPattern
 DROP TABLE IF EXISTS  PitchPattern
 DROP TABLE IF EXISTS  RythmPattern
 DROP TABLE IF EXISTS  SongVersion
@@ -258,22 +260,22 @@ CREATE TABLE RythmPattern(
 ) 
 
 
-CREATE TABLE Arpeggio(
+CREATE TABLE MelodyPattern(
 	Id int IDENTITY(1,1) primary key clustered NOT NULL,
 	PitchPatternId int not null,
 	RythmPatternId int not null,
-	CONSTRAINT IX_Arpeggio_UniquePatterns UNIQUE (PitchPatternId,RythmPatternId)
+	CONSTRAINT IX_MelodyPattern_UniquePatterns UNIQUE (PitchPatternId,RythmPatternId)
 ) 
 
-CREATE TABLE ArpeggioOccurrence(
+CREATE TABLE MelodyPatternOccurrence(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	SongVersionId int not null,
 	OccurrencesString varchar(max) not null,
-	ArpeggioId int not null,
-	CONSTRAINT IX_ArpeggioOccurrence_UniqueArpSong UNIQUE (ArpeggioId,SongVersionId)
+	MelodyPatternId int not null,
+	CONSTRAINT IX_MelodyPatternOccurrence_UniqueArpSong UNIQUE (MelodyPatternId,SongVersionId)
 ) 
-ALTER TABLE ArpeggioOccurrence  WITH CHECK ADD  CONSTRAINT FK_ArpeggioOccurrence_SongVersionId FOREIGN KEY(SongVersionId)
+ALTER TABLE MelodyPatternOccurrence  WITH CHECK ADD  CONSTRAINT FK_MelodyPatternOccurrence_SongVersionId FOREIGN KEY(SongVersionId)
 REFERENCES dbo.SongVersion (Id)
-ALTER TABLE ArpeggioOccurrence  WITH CHECK ADD  CONSTRAINT FK_ArpeggioOccurrence_ArpeggioId FOREIGN KEY(ArpeggioId)
-REFERENCES dbo.Arpeggio (Id)
+ALTER TABLE MelodyPatternOccurrence  WITH CHECK ADD  CONSTRAINT FK_MelodyPatternOccurrence_MelodyPatternId FOREIGN KEY(MelodyPatternId)
+REFERENCES dbo.MelodyPattern (Id)
 

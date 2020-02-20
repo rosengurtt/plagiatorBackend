@@ -45,6 +45,7 @@ namespace Plagiator.Music.Models
                 relativeDurations = PatternUtilities.GetShortestPattern(relativeDurations);
             }
         }
+
         public string AsString
         {
             get
@@ -57,7 +58,16 @@ namespace Plagiator.Music.Models
             }
         }
 
-        public List<Arpeggio> Arpeggios { get; set; }
+        [NotMapped]
+        public int Length
+        {
+            get
+            {
+                return relativeDurations.Count;
+            }
+        }
+
+        public List<MelodyPattern> MelodyPatterns { get; set; }
         private static int GCD(int[] numbers)
         {
             return numbers.Aggregate(GCD);

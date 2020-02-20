@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Plagiator.Music.Models
 {
-    public class ArpeggioOccurrence
+    public class MelodyPatternOccurrence
     {
         public long Id { get; set; }
 
@@ -14,9 +14,9 @@ namespace Plagiator.Music.Models
 
         public SongVersion SongVersion { get; set; }
 
-        public int ArpeggioId { get; set; }
+        public int MelodyPatternId { get; set; }
 
-        public Arpeggio Arpeggio { get; set; }
+        public MelodyPattern MelodyPattern { get; set; }
 
         /// <summary>
         /// The places in the song where they are used

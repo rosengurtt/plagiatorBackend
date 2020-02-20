@@ -117,9 +117,9 @@ namespace SQLDBAccess.Controllers
                 song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
                 song.NormalizeSong();
 
-                foreach (var arpOc in song.Versions[0].ArpeggioOccurrences)
+                foreach (var arpOc in song.Versions[0].MelodyPatternOccurrences)
                 {
-                    var arpi = arpOc.Arpeggio;
+                    var arpi = arpOc.MelodyPattern;
                     // Check if the pitch pattern is already in the db
                     var pitchPat = arpi.PitchPattern;
                     var pitchito = await SongRepository.GetPitchPatternByPatternString(pitchPat.AsString);
@@ -140,15 +140,15 @@ namespace SQLDBAccess.Controllers
                     arpi.RythmPattern = ritmito;
                     arpi.RythmPatternId = ritmito.Id;
 
-                    // Check if arpegio is already in the db
+                    // Check if melody pattern is already in the db
                     if (pitchito != null && ritmito != null)
                     {
-                        var arpito = await SongRepository.GetArpeggioByPitchPatternIdAndRythmPatternId(
+                        var arpito = await SongRepository.GetMelodyPatternByPitchPatternIdAndRythmPatternId(
                             arpi.PitchPatternId, arpi.RythmPatternId);
                         if (arpito != null)
                         {
-                            arpOc.ArpeggioId = arpito.Id;
-                            arpOc.Arpeggio = arpito;
+                            arpOc.MelodyPatternId = arpito.Id;
+                            arpOc.MelodyPattern = arpito;
                         }
                     }
                 }

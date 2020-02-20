@@ -5,16 +5,12 @@ using System.Linq;
 
 namespace Plagiator.Music.Models
 {
-    /// <summary>
-    /// Represents the intervals in the arpeggio in semitones
-    /// For ex. C G C E C G C E would be
-    /// 0 7 0 4
-    /// </summary>
-    public class Arpeggio
+
+    public class MelodyPattern
     {
         public int Id { get; set; }
 
-        List<ArpeggioOccurrence> ArpeggioOccurrences { get; set; }
+        List<MelodyPatternOccurrence> MelodyPatternOccurrences { get; set; }
 
 
         public int PitchPatternId { get; set; }
@@ -23,7 +19,14 @@ namespace Plagiator.Music.Models
         public int RythmPatternId { get; set; }
         public RythmPattern RythmPattern { get; set; }
 
-
+        [NotMapped]
+        public int Length
+        {
+            get
+            {
+                return PitchPattern.Length;
+            }
+        }
         /// <summary>
         /// I don't want to bother implementing GetHashCode, so rather than overriding
         /// Equals, I create this method
@@ -39,7 +42,7 @@ namespace Plagiator.Music.Models
             }
             else
             {
-                Arpeggio arpi = (Arpeggio)obj;
+                MelodyPattern arpi = (MelodyPattern)obj;
                 if (PitchPattern.AsString != arpi.PitchPattern.AsString)
                     return false;
                 if (RythmPattern.AsString != arpi.RythmPattern.AsString)
