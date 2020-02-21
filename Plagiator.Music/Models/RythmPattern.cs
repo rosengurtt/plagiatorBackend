@@ -15,8 +15,11 @@ namespace Plagiator.Music.Models
     public class RythmPattern
     {
 
-        public int Id { get; set; }
+        public RythmPattern() { }
 
+        public RythmPattern(Pattern pattern) {
+            AsString = pattern.AsString;
+        }
         [NotMapped]
         private List<int> relativeDurations;
 

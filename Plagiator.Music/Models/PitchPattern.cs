@@ -2,13 +2,20 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System;
 
 namespace Plagiator.Music.Models
 {
 
     public class PitchPattern
     {
-        public int Id { get; set; }
+        public PitchPattern(Pattern pattern)
+        {
+            if (pattern.PatternType != PatternType.Pitch)
+                throw new Exception("Can't create a PitchPattern object from this PatternType");
+            AsString = pattern.AsString;
+        }
+        public PitchPattern() { }
 
         private List<int> pitchesRelativeToFirst { get; set; }
 

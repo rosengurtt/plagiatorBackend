@@ -1,5 +1,9 @@
+DROP TABLE IF EXISTS  PatternType
+DROP TABLE IF EXISTS  Pattern
+DROP TABLE IF EXISTS  Occurrence
 DROP TABLE IF EXISTS  PitchBendItem
 DROP TABLE IF EXISTS  Note
+DROP TABLE IF EXISTS  PatternTypes
 DROP TABLE IF EXISTS  ArpeggioOccurrence
 DROP TABLE IF EXISTS  Arpeggio
 DROP TABLE IF EXISTS  MelodyPatternOccurrence
@@ -247,35 +251,37 @@ CREATE TABLE TempoChange(
 ALTER TABLE TempoChange  WITH CHECK ADD  CONSTRAINT FK_TempoChange_SongId FOREIGN KEY(SongId)
 REFERENCES dbo.Song (Id)
 
-CREATE TABLE PitchPattern(
-	Id int IDENTITY(1,1) primary key clustered NOT NULL,
-	AsString varchar(600) not null
-	CONSTRAINT IX_PitchPattern_UniquePatterns UNIQUE (AsString)
+CREATE TABLE Pattern(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+	AsString varchar(600) not null,
+	PatternTypeId tinyint not null,
+	CONSTRAINT IX_UniquePatterns UNIQUE (AsString, PatternTypeId)
 ) 
 
-CREATE TABLE RythmPattern(
-	Id int IDENTITY(1,1) primary key clustered NOT NULL,
-	AsString varchar(600) not null
-	CONSTRAINT IX_RythmPattern_UniquePatterns UNIQUE (AsString)
-) 
+create table PatternType(
+	Id tinyint primary key clustered NOT NULL,
+	TypeName varchar(10) not null
+)
 
+insert into PatternType(Id, TypeName)
+values (1, 'Pitch')
+insert into PatternType(Id, TypeName)
+values (2, 'Rythm')
+insert into PatternType(Id, TypeName)
+values (3, 'Melody')
+     
 
-CREATE TABLE MelodyPattern(
-	Id int IDENTITY(1,1) primary key clustered NOT NULL,
-	PitchPatternId int not null,
-	RythmPatternId int not null,
-	CONSTRAINT IX_MelodyPattern_UniquePatterns UNIQUE (PitchPatternId,RythmPatternId)
-) 
-
-CREATE TABLE MelodyPatternOccurrence(
+CREATE TABLE Occurrence(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	SongVersionId int not null,
-	OccurrencesString varchar(max) not null,
-	MelodyPatternId int not null,
-	CONSTRAINT IX_MelodyPatternOccurrence_UniqueArpSong UNIQUE (MelodyPatternId,SongVersionId)
+	PatternId bigint not null,
+	NoteId bigint not null
 ) 
-ALTER TABLE MelodyPatternOccurrence  WITH CHECK ADD  CONSTRAINT FK_MelodyPatternOccurrence_SongVersionId FOREIGN KEY(SongVersionId)
+ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_SongVersionId FOREIGN KEY(SongVersionId)
 REFERENCES dbo.SongVersion (Id)
-ALTER TABLE MelodyPatternOccurrence  WITH CHECK ADD  CONSTRAINT FK_MelodyPatternOccurrence_MelodyPatternId FOREIGN KEY(MelodyPatternId)
-REFERENCES dbo.MelodyPattern (Id)
+ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_NoteId FOREIGN KEY(NoteId)
+REFERENCES dbo.Note (Id)
+ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_Pattern FOREIGN KEY(PatternId)
+REFERENCES dbo.Pattern (Id)
+
 
