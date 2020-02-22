@@ -141,29 +141,15 @@ namespace SQLDBAccess.DataAccess
 
         public Task<TimeSignature> GetTimeSignature(TimeSignature ts);
 
-        public Task<MelodyPattern> GetMelodyPatternById(int melodyPatternId);
-        public Task<MelodyPattern> GetMelodyPatternByPitchPatternIdAndRythmPatternId(
-            int pitchPatternId,
-            int rythmPatternId);
-        public Task<MelodyPattern> AddMelodyPattern(MelodyPattern melodyPattern);
-
-        public Task<MelodyPatternOccurrence> GetMelodyPatternOccurrenceById(int arpOcId);
-        public Task<MelodyPatternOccurrence> GetMelodyPatternOccurrencesForSongVersionIdAndMelodyPatternId(
-            int songVersionId,
-            int melodyPatternId);
-        public Task<MelodyPatternOccurrence> AddMelodyPatternOccurrence(MelodyPatternOccurrence arpOc);
-
-        Task<PitchPattern> GetPitchPatternById(int pitchPatternId);
+        Task<Pattern> GetPatternByIdAsync(int patternId);
 
 
-        Task<RythmPattern> GetRythmPatternById(int rythmPatternId);
+        Task<Pattern> GetPatternByStringAndTypeAsync(string patternString, PatternType patternType);
+        Task<Pattern> AddPatternAsync(Pattern pattern);
+        Task<Occurrence> GetOccurrenceByIdAsync(int ocId);
 
-        Task<PitchPattern> GetPitchPatternByPatternString(string pitchPatternString);
+        Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(int songVersionId, int patternId);
 
-        Task<PitchPattern> AddPitchPattern(PitchPattern pitchPattern);
-
-        Task<RythmPattern> GetRythmPatternByPatternString(string rythmPatternString);
-
-        Task<RythmPattern> AddRythnPattern(RythmPattern rythnPattern);
+        Task<Occurrence> AddOccurrence(Occurrence oc);
     }
 }

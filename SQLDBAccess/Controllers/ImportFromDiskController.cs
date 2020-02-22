@@ -117,40 +117,16 @@ namespace SQLDBAccess.Controllers
                 song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
                 song.NormalizeSong();
 
-                foreach (var arpOc in song.Versions[0].MelodyPatternOccurrences)
+                foreach (var oc in song.Versions[0].Occurrences)
                 {
-                    var arpi = arpOc.MelodyPattern;
-                    // Check if the pitch pattern is already in the db
-                    var pitchPat = arpi.PitchPattern;
-                    var pitchito = await SongRepository.GetPitchPatternByPatternString(pitchPat.AsString);
-                    if (pitchito == null)
+                    var pattern = oc.Pattern;
+                    var patito = await SongRepository.GetPatternByStringAndTypeAsync(pattern.AsString, pattern.PatternTypeId);
+                    if (patito == null)
                     {
-                        pitchito = await SongRepository.AddPitchPattern(pitchPat);
+                        patito = await SongRepository.AddPatternAsync(pattern);
                     }
-                    arpi.PitchPattern = pitchito;
-                    arpi.PitchPatternId = pitchito.Id;
-
-                    // Check if the rythm pattern is already in the db
-                    var rythmPat = arpi.RythmPattern;
-                    var ritmito = await SongRepository.GetRythmPatternByPatternString(rythmPat.AsString);
-                    if (ritmito == null)
-                    {
-                        ritmito = await SongRepository.AddRythnPattern(rythmPat);
-                    }
-                    arpi.RythmPattern = ritmito;
-                    arpi.RythmPatternId = ritmito.Id;
-
-                    // Check if melody pattern is already in the db
-                    if (pitchito != null && ritmito != null)
-                    {
-                        var arpito = await SongRepository.GetMelodyPatternByPitchPatternIdAndRythmPatternId(
-                            arpi.PitchPatternId, arpi.RythmPatternId);
-                        if (arpito != null)
-                        {
-                            arpOc.MelodyPatternId = arpito.Id;
-                            arpOc.MelodyPattern = arpito;
-                        }
-                    }
+                    oc.Pattern = patito;
+                    oc.PatternId = patito.Id;
                 }
 
                 await SongRepository.AddSong(song);

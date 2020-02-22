@@ -32,7 +32,15 @@ namespace Plagiator.Music.Models
                     yield return note.Pitch;
             }
         }
-   
+        public IEnumerable<int> DurationsInTicks
+        {
+            get
+            {
+                foreach (var note in Notes)
+                    yield return note.DurationInTicks;
+            }
+        }
+
 
         private static IEnumerable<Note> RemoveBassNotes(List<Note> notes)
         {

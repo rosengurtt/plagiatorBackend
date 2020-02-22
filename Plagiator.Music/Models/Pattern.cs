@@ -10,7 +10,7 @@
 
         public string AsString { get; set; }
 
-        public PatternType PatternType { get; set; }
+        public PatternType PatternTypeId { get; set; }
     }
     public enum PatternType
     {

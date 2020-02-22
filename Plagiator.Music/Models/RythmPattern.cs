@@ -20,10 +20,17 @@ namespace Plagiator.Music.Models
         public RythmPattern(Pattern pattern) {
             AsString = pattern.AsString;
         }
-        [NotMapped]
+        public RythmPattern(string patternAsString)
+        {
+            AsString = patternAsString;
+        }
+        public RythmPattern(List<int> integers)
+        {
+            RelativeDurations= integers;
+        }
+
         private List<int> relativeDurations;
 
-        [NotMapped]
         public List<int> RelativeDurations
         {
             get
@@ -70,7 +77,6 @@ namespace Plagiator.Music.Models
             }
         }
 
-        public List<MelodyPattern> MelodyPatterns { get; set; }
         private static int GCD(int[] numbers)
         {
             return numbers.Aggregate(GCD);

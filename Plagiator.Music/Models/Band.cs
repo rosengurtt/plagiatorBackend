@@ -7,10 +7,10 @@ namespace Plagiator.Music.Models
 {
     public class Band
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Name { get; set; }
 
-        public int StyleId { get; set; }
+        public long StyleId { get; set; }
         public Style Style { get; set; }
     }
 }

@@ -50,7 +50,23 @@ namespace Plagiator.Music.Models
                 IsPercussion = this.IsPercussion
             };
         }
-
-
+        public bool IsEqual(object n)
+        {
+            //Check for null and compare run-time types.
+            if ((n == null) || !this.GetType().Equals(n.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                Note noty = (Note)n;
+                if (noty.Pitch == Pitch &&
+                    noty.StartSinceBeginningOfSongInTicks == StartSinceBeginningOfSongInTicks &&
+                    noty.EndSinceBeginningOfSongInTicks == EndSinceBeginningOfSongInTicks &&
+                    noty.Instrument == Instrument)
+                    return true;
+                return false;
+            }
+        }
     }
 }

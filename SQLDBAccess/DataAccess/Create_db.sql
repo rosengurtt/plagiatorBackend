@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS  PatternType
-DROP TABLE IF EXISTS  Pattern
 DROP TABLE IF EXISTS  Occurrence
+DROP TABLE IF EXISTS  Pattern
+DROP TABLE IF EXISTS  PatternType
 DROP TABLE IF EXISTS  PitchBendItem
 DROP TABLE IF EXISTS  Note
 DROP TABLE IF EXISTS  PatternTypes
@@ -18,15 +18,11 @@ DROP TABLE IF EXISTS  Band
 DROP TABLE IF EXISTS  Style
 DROP TABLE IF EXISTS  TimeSignature
 
-CREATE TABLE [dbo].[TimeSignature](
-	Id int IDENTITY(1,1) NOT NULL,
+CREATE TABLE TimeSignature(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	Numerator int NOT NULL,
 	Denominator int NOT NULL,
- CONSTRAINT [PK_KeySignature] PRIMARY KEY CLUSTERED 
-(
-	[Id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
+)
 
 
 SET IDENTITY_INSERT TimeSignature ON
@@ -98,14 +94,11 @@ insert into TimeSignature(Id, Numerator, Denominator)
 values (22, 8, 4)
 SET IDENTITY_INSERT TimeSignature OFF
 
-CREATE TABLE dbo.Style(
-	Id int IDENTITY(1,1) NOT NULL,
+CREATE TABLE Style(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	[Name] nvarchar(60) NULL,
- CONSTRAINT PK_Style PRIMARY KEY CLUSTERED 
-(
-	Id ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
+)
+ALTER TABLE Style ADD CONSTRAINT UC_Style UNIQUE (Name);
 
 SET IDENTITY_INSERT Style ON
 
@@ -120,36 +113,32 @@ values (3, 'Jazz')
 
 SET IDENTITY_INSERT Style OFF
 
-CREATE TABLE dbo.Band(
-	Id int IDENTITY(1,1) NOT NULL,
+CREATE TABLE Band(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	[Name] nvarchar(100) NOT NULL,
-	StyleId int NOT NULL,
- CONSTRAINT PK_Band PRIMARY KEY CLUSTERED 
-(
-	Id ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
+	StyleId bigint NOT NULL,
+)
+ALTER TABLE Band ADD CONSTRAINT UC_Band UNIQUE (Name);
+
+ALTER TABLE Band  WITH CHECK ADD  CONSTRAINT FK_Band_Style FOREIGN KEY(StyleId)
+REFERENCES Style (Id)
 GO
 
-ALTER TABLE dbo.Band  WITH CHECK ADD  CONSTRAINT FK_Band_Style FOREIGN KEY(StyleId)
-REFERENCES dbo.Style (Id)
+ALTER TABLE Band CHECK CONSTRAINT FK_Band_Style
 GO
 
-ALTER TABLE dbo.Band CHECK CONSTRAINT FK_Band_Style
-GO
-
-CREATE TABLE dbo.Song(
-	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+CREATE TABLE Song(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	Name nvarchar(500) NOT NULL,
-	BandId int NULL,
-	StyleId int NOT NULL,
+	BandId bigint NULL,
+	StyleId bigint NOT NULL,
 	TempoInBeatsPerMinute int NULL,
 	TempoInMicrosecondsPerBeat int NULL,
 	NumberBars int NULL,
 	NumberOfTicks int NULL,
 	DurationInSeconds int NULL,
 	NumberTracks int NULL,
-	TimeSignatureId int NULL,
+	TimeSignatureId bigint NULL,
 	OriginalMidiBase64Encoded nvarchar(max) NOT NULL,
 	ProcessedMidiBase64Encoded nvarchar(max) NULL,
 	TotalEvents int NULL,
@@ -175,35 +164,35 @@ CREATE TABLE dbo.Song(
 	HasPercusion bit NULL
 )
 
-ALTER TABLE dbo.Song  WITH CHECK ADD  CONSTRAINT FK_Song_Band FOREIGN KEY(BandId)
-REFERENCES dbo.Band (Id)
+ALTER TABLE Song  WITH CHECK ADD  CONSTRAINT FK_Song_Band FOREIGN KEY(BandId)
+REFERENCES Band (Id)
 GO
 
-ALTER TABLE dbo.Song CHECK CONSTRAINT FK_Song_Band
+ALTER TABLE Song CHECK CONSTRAINT FK_Song_Band
 GO
 
-ALTER TABLE dbo.Song  WITH CHECK ADD  CONSTRAINT FK_Song_Style FOREIGN KEY(StyleId)
-REFERENCES dbo.Style (Id)
+ALTER TABLE Song  WITH CHECK ADD  CONSTRAINT FK_Song_Style FOREIGN KEY(StyleId)
+REFERENCES Style (Id)
 GO
 
-ALTER TABLE dbo.Song CHECK CONSTRAINT FK_Song_Style
+ALTER TABLE Song CHECK CONSTRAINT FK_Song_Style
 GO
 
-ALTER TABLE dbo.Song  WITH CHECK ADD  CONSTRAINT FK_Song_TimeSignature FOREIGN KEY(TimeSignatureId)
-REFERENCES dbo.TimeSignature (Id)
+ALTER TABLE Song  WITH CHECK ADD  CONSTRAINT FK_Song_TimeSignature FOREIGN KEY(TimeSignatureId)
+REFERENCES TimeSignature (Id)
 GO
 
-ALTER TABLE dbo.Song CHECK CONSTRAINT FK_Song_TimeSignature
+ALTER TABLE Song CHECK CONSTRAINT FK_Song_TimeSignature
 GO
 
 CREATE TABLE SongVersion(
-	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	VersionNumber int not null,
-	SongId int not null
+	SongId bigint not null
 ) 
 
 
-CREATE TABLE dbo.Note(
+CREATE TABLE Note(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	Pitch tinyint NOT NULL,
 	Volume tinyint NOT NULL,
@@ -211,25 +200,25 @@ CREATE TABLE dbo.Note(
 	EndSinceBeginningOfSongInTicks bigint NOT NULL,
 	Instrument tinyint NOT NULL,
 	IsPercussion bit null,
-	SongVersionId int not null
+	SongVersionId bigint not null
 )
 ALTER TABLE Note  WITH CHECK ADD  CONSTRAINT FK_Note_SongVersionId FOREIGN KEY(SongVersionId)
-REFERENCES dbo.SongVersion (Id)
+REFERENCES SongVersion (Id)
 
 CREATE TABLE Bar(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	BarNumber int NULL,
 	TicksFromBeginningOfSong bigint NULL,
-	TimeSignatureId int NULL,
+	TimeSignatureId bigint NULL,
 	HasTriplets bit NULL,
 	TempoInMicrosecondsPerQuarterNote int null,
-	SongId int not null
+	SongId bigint not null
 )
 ALTER TABLE Bar  WITH CHECK ADD  CONSTRAINT FK_Bar_TimeSignature FOREIGN KEY(TimeSignatureId)
-REFERENCES dbo.TimeSignature (Id)
+REFERENCES TimeSignature (Id)
 
 ALTER TABLE Bar  WITH CHECK ADD  CONSTRAINT FK_Bar_SongId FOREIGN KEY(SongId)
-REFERENCES dbo.Song (Id)
+REFERENCES Song (Id)
 
 CREATE TABLE PitchBendItem(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
@@ -238,25 +227,18 @@ CREATE TABLE PitchBendItem(
 	NoteId bigint not null
 ) 
 ALTER TABLE PitchBendItem  WITH CHECK ADD  CONSTRAINT FK_PitchBendItem_NoteId FOREIGN KEY(NoteId)
-REFERENCES dbo.Note (Id)
+REFERENCES Note (Id)
 
 
 
 CREATE TABLE TempoChange(
-	Id int IDENTITY(1,1) primary key clustered NOT NULL,
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	TicksSinceBeginningOfSong bigint NULL,
 	MicrosecondsPerQuarterNote int NULL,
-	SongId int not null
+	SongId bigint not null
 ) 
 ALTER TABLE TempoChange  WITH CHECK ADD  CONSTRAINT FK_TempoChange_SongId FOREIGN KEY(SongId)
-REFERENCES dbo.Song (Id)
-
-CREATE TABLE Pattern(
-	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	AsString varchar(600) not null,
-	PatternTypeId tinyint not null,
-	CONSTRAINT IX_UniquePatterns UNIQUE (AsString, PatternTypeId)
-) 
+REFERENCES Song (Id)
 
 create table PatternType(
 	Id tinyint primary key clustered NOT NULL,
@@ -271,17 +253,26 @@ insert into PatternType(Id, TypeName)
 values (3, 'Melody')
      
 
+CREATE TABLE Pattern(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+	AsString varchar(600) not null,
+	PatternTypeId tinyint not null,
+	CONSTRAINT IX_UniquePatterns UNIQUE (AsString, PatternTypeId)
+) 
+ALTER TABLE Pattern  WITH CHECK ADD  CONSTRAINT FK_Pattern_PatternType FOREIGN KEY(PatternTypeId)
+REFERENCES PatternType (Id)
+
 CREATE TABLE Occurrence(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	SongVersionId int not null,
+	SongVersionId bigint not null,
 	PatternId bigint not null,
 	NoteId bigint not null
 ) 
 ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_SongVersionId FOREIGN KEY(SongVersionId)
-REFERENCES dbo.SongVersion (Id)
+REFERENCES SongVersion (Id)
 ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_NoteId FOREIGN KEY(NoteId)
-REFERENCES dbo.Note (Id)
+REFERENCES Note (Id)
 ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_Pattern FOREIGN KEY(PatternId)
-REFERENCES dbo.Pattern (Id)
+REFERENCES Pattern (Id)
 
 

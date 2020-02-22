@@ -10,36 +10,54 @@ namespace SQLDBAccess.DataAccess
     public partial class SongRepository : ISongRepository
     {
 
-        public async Task<PitchPattern> GetPitchPatternById(int pitchPatternId)
+        public async Task<Pattern> GetPatternByIdAsync(int patternId)
         {
-            return await Context.PitchPatterns.FindAsync(pitchPatternId);
+            return await Context.Patterns.FindAsync(patternId);
         }
 
-        public async Task<RythmPattern> GetRythmPatternById(int rythmPatternId)
+       
+        public async Task<Pattern> GetPatternByStringAndTypeAsync(string patternString, PatternType patternType)
         {
-            return await Context.RythmPatterns.FindAsync(rythmPatternId);
+            return await Context.Patterns
+                .Where(a => a.AsString == patternString & a.PatternTypeId== patternType).FirstOrDefaultAsync();
         }
-        public async Task<PitchPattern> GetPitchPatternByPatternString(string pitchPatternString)
+        public async Task<Pattern> AddPatternAsync(Pattern pattern)
         {
-            return await Context.PitchPatterns
-                .Where(a => a.AsString == pitchPatternString).FirstOrDefaultAsync();
-        }
-        public async Task<PitchPattern> AddPitchPattern(PitchPattern pitchPattern)
-        {
-            Context.PitchPatterns.Add(pitchPattern);
+            Context.Patterns.Add(pattern);
             await Context.SaveChangesAsync();
-            return pitchPattern;
+            return pattern;
         }
-        public async Task<RythmPattern> GetRythmPatternByPatternString(string rythmPatternString)
+        public async Task<Occurrence> GetOccurrenceByIdAsync(int ocId)
         {
-            return await Context.RythmPatterns
-                .Where(a => a.AsString == rythmPatternString).FirstOrDefaultAsync();
+            return await Context.Occurrences.FindAsync(ocId);
         }
-        public async Task<RythmPattern> AddRythnPattern(RythmPattern rythnPattern)
+
+        public async Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(int songVersionId, int patternId)
         {
-            Context.RythmPatterns.Add(rythnPattern);
+            return await Context.Occurrences.Join(
+                Context.SongVersions,
+                occurrence => occurrence.SongVersionId,
+                songVersion => songVersion.Id,
+                (occurrence, songVersion) => new Occurrence
+                {
+                    Id = occurrence.Id,
+                    SongVersionId = songVersion.Id,
+                    PatternId = occurrence.PatternId,
+                    NoteId = occurrence.NoteId,
+                    Note = occurrence.Note,
+                    Pattern = occurrence.Pattern
+                }
+                )
+                .Where(a => a.SongVersionId == songVersionId & a.PatternId == patternId).ToListAsync();
+        }
+
+        public async Task<Occurrence> AddOccurrence(Occurrence oc)
+        {
+            Context.Occurrences.Add(oc);
             await Context.SaveChangesAsync();
-            return rythnPattern;
+            return oc;
+
         }
+    
     }
 }

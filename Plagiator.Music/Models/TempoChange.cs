@@ -6,9 +6,9 @@ namespace Plagiator.Music.Models
 {
     public class TempoChange
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
-        public int SongId { get; set; }
+        public long SongId { get; set; }
 
         public int MicrosecondsPerQuarterNote { get; set; }
 

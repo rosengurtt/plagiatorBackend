@@ -2,53 +2,63 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Plagiator.Music.Models
 {
 
     public class MelodyPattern
     {
-        public int Id { get; set; }
+        public MelodyPattern() { }
 
-        List<MelodyPatternOccurrence> MelodyPatternOccurrences { get; set; }
+        public MelodyPattern(PitchPattern pitchPattern, RythmPattern rythmPattern)
+        {
+            PitchesRelativeToFirst = pitchPattern.PitchesRelativeToFirst;
+            RelativeDurations = rythmPattern.RelativeDurations;
+        }
+        public List<int> PitchesRelativeToFirst { get; set; }
 
+        public List<int> RelativeDurations { get; set; }
 
-        public int PitchPatternId { get; set; }
-        public PitchPattern PitchPattern { get; set; }
-
-        public int RythmPatternId { get; set; }
-        public RythmPattern RythmPattern { get; set; }
-
-        [NotMapped]
-        public int Length
+        public string AsString
         {
             get
             {
-                return PitchPattern.Length;
+                return String.Join(",", PitchesRelativeToFirst.Zip(RelativeDurations, (a, b) => $"({a}-{b}"));
+            }
+            set
+            {
+                PitchesRelativeToFirst = new List<int>();
+                RelativeDurations = new List<int>();
+                string pattern = @"(\((\d*)\-(\d*)\))";
+                MatchCollection matches = Regex.Matches(value, pattern);
+                foreach (Match match in matches)
+                {
+                    GroupCollection data = match.Groups;
+                    PitchesRelativeToFirst.Add(int.Parse(data[2].Value));
+                    RelativeDurations.Add(int.Parse(data[3].Value));
+                    RelativeDurations = SimplifyDurations(RelativeDurations);
+                }
+                if (PitchesRelativeToFirst.Count == 0 || RelativeDurations.Count == 0 ||
+                    (PitchesRelativeToFirst.Count < 2 && RelativeDurations.Count < 2))
+                    throw new Exception("Invalid string for a melody pattern");
             }
         }
-        /// <summary>
-        /// I don't want to bother implementing GetHashCode, so rather than overriding
-        /// Equals, I create this method
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public bool IsEqual(Object obj)
+       
+        public Pattern AsPattern
         {
-            //Check for null and compare run-time types.
-            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            get
             {
-                return false;
+                return new Pattern()
+                {
+                    AsString = this.AsString
+                };
             }
-            else
-            {
-                MelodyPattern arpi = (MelodyPattern)obj;
-                if (PitchPattern.AsString != arpi.PitchPattern.AsString)
-                    return false;
-                if (RythmPattern.AsString != arpi.RythmPattern.AsString)
-                    return false;
-                return true;
-            }
+        }
+        private List<int> SimplifyDurations(List<int> durations)
+        {
+            var patty = new RythmPattern(durations);
+            return patty.RelativeDurations;
         }
     }
 }

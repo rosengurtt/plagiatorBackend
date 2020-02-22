@@ -19,6 +19,9 @@ namespace Plagiator.Music.Models
         public long NoteId { get; set; }
         public Note Note { get; set; }
 
+        public long SongVersionId { get; set; }
+        public SongVersion SongVersion { get; set; }
+
     }
 
 }

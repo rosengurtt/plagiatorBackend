@@ -7,13 +7,14 @@ namespace Plagiator.Music.Models
 {
     public class SongVersion
     {
-        public int Id { get; set; }
-        public int SongId { get; set; }
+        public long Id { get; set; }
+        public long SongId { get; set; }
 
         public int VersionNumber { get; set; }
         public List<Note> Notes { get; set; }
 
-        public List<MelodyPatternOccurrence> MelodyPatternOccurrences { get; set; }
+        public List<Occurrence> Occurrences { get; set; }
+
 
         public List<Note> NotesOfInstrument(GeneralMidi2Program instr)
         {

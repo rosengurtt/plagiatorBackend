@@ -11,7 +11,7 @@ namespace Plagiator.Music.Models
     {
         public PitchPattern(Pattern pattern)
         {
-            if (pattern.PatternType != PatternType.Pitch)
+            if (pattern.PatternTypeId != PatternType.Pitch)
                 throw new Exception("Can't create a PitchPattern object from this PatternType");
             AsString = pattern.AsString;
         }
@@ -19,7 +19,6 @@ namespace Plagiator.Music.Models
 
         private List<int> pitchesRelativeToFirst { get; set; }
 
-        [NotMapped]
         public List<int> PitchesRelativeToFirst {
             get
             {
@@ -42,7 +41,6 @@ namespace Plagiator.Music.Models
                     .ConvertAll(value.Split(","), s => int.Parse(s)).ToList();
             }
         }
-        [NotMapped]
         public int Length
         {
             get

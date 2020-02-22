@@ -26,10 +26,8 @@ namespace SQLDBAccess.DataAccess
 
         public DbSet<SongVersion> SongVersions { get; set; }
 
-        public DbSet<PitchPattern> PitchPatterns { get; set; }
-        public DbSet<RythmPattern> RythmPatterns { get; set; }
-        public DbSet<MelodyPattern> MelodyPatterns     { get; set; }
-        public DbSet<MelodyPatternOccurrence> MelodyPatternOccurrences { get; set; }
+        public DbSet<Pattern> Patterns { get; set; }
+        public DbSet<Occurrence> Occurrences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,10 +40,8 @@ namespace SQLDBAccess.DataAccess
             modelBuilder.Entity<PitchBendItem>().ToTable("PitchBendItem");
             modelBuilder.Entity<TempoChange>().ToTable("TempoChange");
             modelBuilder.Entity<SongVersion>().ToTable("SongVersion");
-            modelBuilder.Entity<PitchPattern>().ToTable("PitchPattern");
-            modelBuilder.Entity<RythmPattern>().ToTable("RythmPattern");
-            modelBuilder.Entity<MelodyPattern>().ToTable("MelodyPattern");
-            modelBuilder.Entity<MelodyPatternOccurrence>().ToTable("MelodyPatternOccurrence");
+            modelBuilder.Entity<Pattern>().ToTable("Pattern");
+            modelBuilder.Entity<Occurrence>().ToTable("Occurrence");
 
             modelBuilder.Entity<Style>()
                 .HasAlternateKey(c => c.Name).HasName("IX_StyleName");
