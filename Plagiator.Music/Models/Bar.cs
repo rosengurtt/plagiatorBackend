@@ -13,7 +13,7 @@ namespace Plagiator.Music.Models
         public int BarNumber { get; set; }
         public long TicksFromBeginningOfSong { get; set; }
         
-        public int TimeSignatureId { get; set; }
+        public long TimeSignatureId { get; set; }
         public TimeSignature TimeSignature { get; set; }
 
         /// <summary>

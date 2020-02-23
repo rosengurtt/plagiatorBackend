@@ -57,7 +57,8 @@ namespace Plagiator.Music.Models
                 {
                     yield return orderedNotes[i + j - 1];
                 }
-                i += (j - 1);
+                if (j > 1)
+                    i += (j - 1);
             }
         }
 

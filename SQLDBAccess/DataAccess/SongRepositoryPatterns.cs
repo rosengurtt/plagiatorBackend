@@ -43,8 +43,10 @@ namespace SQLDBAccess.DataAccess
                     Id = occurrence.Id,
                     SongVersionId = songVersion.Id,
                     PatternId = occurrence.PatternId,
-                    NoteId = occurrence.NoteId,
-                    Note = occurrence.Note,
+                    FirstNoteId = occurrence.FirstNoteId,
+                    FirstNote = occurrence.FirstNote,
+                    LastNoteId = occurrence.LastNoteId,
+                    LastNote = occurrence.LastNote,
                     Pattern = occurrence.Pattern
                 }
                 )

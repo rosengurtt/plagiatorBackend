@@ -17,27 +17,18 @@ namespace Plagiator.Music.Models
         }
         public PitchPattern() { }
 
-        private List<int> pitchesRelativeToFirst { get; set; }
+        public List<int> DeltaPitches { get; set; }
 
-        public List<int> PitchesRelativeToFirst {
-            get
-            {
-                return pitchesRelativeToFirst;
-            }
-            set
-            {
-                pitchesRelativeToFirst = PatternUtilities.GetShortestPattern(value);
-            }
-        }
+  
         public string AsString
         {
             get
             {
-                return String.Join(",", PitchesRelativeToFirst);
+                return String.Join(",", DeltaPitches);
             }
             set
             {
-                PitchesRelativeToFirst = Array
+                DeltaPitches = Array
                     .ConvertAll(value.Split(","), s => int.Parse(s)).ToList();
             }
         }
@@ -45,17 +36,30 @@ namespace Plagiator.Music.Models
         {
             get
             {
-                return PitchesRelativeToFirst.Count + 1;
+                return DeltaPitches.Count;
             }
         }
 
         public List<MelodyPattern> MelodyPatterns { get; set; }
 
+        private List<int> PitchesRelativeToFirst { 
+            get
+            {
+                var pitchesRelativeToFirst = new List<int>();
+                pitchesRelativeToFirst.Add(0);
+                for (int i=1; i<DeltaPitches.Count; i++)
+                {
+                    var pitch = DeltaPitches[i] + pitchesRelativeToFirst[i - 1];
+                    pitchesRelativeToFirst.Add(pitch);
+                }
+                return pitchesRelativeToFirst;
+            }
+        }
         public List<int> intervals
         {
             get
             {
-                var retObj = new List<int>();
+                var retObj = new List<int>() { 0 };
                 for (int i = 0; i < PitchesRelativeToFirst.Count - 1; i++)
                 {
                     for (int j = i + 1; j < PitchesRelativeToFirst.Count; j++)

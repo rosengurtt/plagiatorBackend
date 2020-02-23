@@ -1,4 +1,6 @@
-﻿namespace Plagiator.Music.Models
+﻿using System;
+
+namespace Plagiator.Music.Models
 {
     /// <summary>
     /// The main reason for creating this class is for persistence in sql
@@ -10,9 +12,18 @@
 
         public string AsString { get; set; }
 
+        public int Length
+        {
+            get
+            {
+                return AsString.Split(",").Length;
+            }
+        }
+
         public PatternType PatternTypeId { get; set; }
+
     }
-    public enum PatternType
+    public enum PatternType : Byte
     {
         Pitch = 1,
         Rythm = 2,

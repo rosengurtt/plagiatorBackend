@@ -266,11 +266,14 @@ CREATE TABLE Occurrence(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	SongVersionId bigint not null,
 	PatternId bigint not null,
-	NoteId bigint not null
+	FirstNoteId bigint not null,
+	LastNoteId bigint not null
 ) 
 ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_SongVersionId FOREIGN KEY(SongVersionId)
 REFERENCES SongVersion (Id)
-ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_NoteId FOREIGN KEY(NoteId)
+ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_FirstNoteId FOREIGN KEY(FirstNoteId)
+REFERENCES Note (Id)
+ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_LastNoteId FOREIGN KEY(LastNoteId)
 REFERENCES Note (Id)
 ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_Pattern FOREIGN KEY(PatternId)
 REFERENCES Pattern (Id)

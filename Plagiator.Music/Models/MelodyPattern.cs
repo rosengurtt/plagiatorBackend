@@ -13,10 +13,10 @@ namespace Plagiator.Music.Models
 
         public MelodyPattern(PitchPattern pitchPattern, RythmPattern rythmPattern)
         {
-            PitchesRelativeToFirst = pitchPattern.PitchesRelativeToFirst;
+            DeltaPitches = pitchPattern.DeltaPitches;
             RelativeDurations = rythmPattern.RelativeDurations;
         }
-        public List<int> PitchesRelativeToFirst { get; set; }
+        public List<int> DeltaPitches { get; set; }
 
         public List<int> RelativeDurations { get; set; }
 
@@ -24,23 +24,23 @@ namespace Plagiator.Music.Models
         {
             get
             {
-                return String.Join(",", PitchesRelativeToFirst.Zip(RelativeDurations, (a, b) => $"({a}-{b}"));
+                return String.Join(",", DeltaPitches.Zip(RelativeDurations, (a, b) => $"({a}-{b})"));
             }
             set
             {
-                PitchesRelativeToFirst = new List<int>();
+                DeltaPitches = new List<int>();
                 RelativeDurations = new List<int>();
                 string pattern = @"(\((\d*)\-(\d*)\))";
                 MatchCollection matches = Regex.Matches(value, pattern);
                 foreach (Match match in matches)
                 {
                     GroupCollection data = match.Groups;
-                    PitchesRelativeToFirst.Add(int.Parse(data[2].Value));
+                    DeltaPitches.Add(int.Parse(data[2].Value));
                     RelativeDurations.Add(int.Parse(data[3].Value));
                     RelativeDurations = SimplifyDurations(RelativeDurations);
                 }
-                if (PitchesRelativeToFirst.Count == 0 || RelativeDurations.Count == 0 ||
-                    (PitchesRelativeToFirst.Count < 2 && RelativeDurations.Count < 2))
+                if (DeltaPitches.Count == 0 || RelativeDurations.Count == 0 ||
+                    (DeltaPitches.Count < 2 && RelativeDurations.Count < 2))
                     throw new Exception("Invalid string for a melody pattern");
             }
         }
@@ -51,7 +51,8 @@ namespace Plagiator.Music.Models
             {
                 return new Pattern()
                 {
-                    AsString = this.AsString
+                    AsString = this.AsString,
+                    PatternTypeId = PatternType.Melody
                 };
             }
         }

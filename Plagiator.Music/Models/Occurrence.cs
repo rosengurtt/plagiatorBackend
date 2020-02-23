@@ -16,8 +16,10 @@ namespace Plagiator.Music.Models
         public long PatternId { get; set; }
         public Pattern Pattern { get; set; }
         
-        public long NoteId { get; set; }
-        public Note Note { get; set; }
+        public long FirstNoteId { get; set; }
+        public Note FirstNote { get; set; }
+        public long LastNoteId { get; set; }
+        public Note LastNote { get; set; }
 
         public long SongVersionId { get; set; }
         public SongVersion SongVersion { get; set; }
