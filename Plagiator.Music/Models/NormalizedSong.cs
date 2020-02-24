@@ -77,7 +77,7 @@ namespace Plagiator.Music.Models
             {
                 Versions[0].Occurrences = Versions[0].Occurrences.Concat(rythmPatterns[p]).ToList();
             }
-            var melodyPatterns = PatternUtilities.FindMelodyPatternsInSong(pitchPatterns, rythmPatterns);
+            var melodyPatterns = PatternUtilities.FindPatternsOfTypeInSong(this, 0, PatternType.Melody);
             foreach (var p in melodyPatterns.Keys)
             {
                 Versions[0].Occurrences = Versions[0].Occurrences.Concat(melodyPatterns[p]).ToList();

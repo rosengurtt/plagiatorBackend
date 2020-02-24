@@ -24,6 +24,18 @@ namespace Plagiator.Music.Models
         public long SongVersionId { get; set; }
         public SongVersion SongVersion { get; set; }
 
+        public Occurrence Clone()
+        {
+            var retObj = new Occurrence();
+            retObj.Pattern = new Pattern { 
+                AsString = this.Pattern.AsString, 
+                PatternTypeId = this.Pattern.PatternTypeId
+            };
+            retObj.FirstNote = this.FirstNote.Clone();
+            retObj.LastNote = this.LastNote.Clone();
+            retObj.SongVersion = this.SongVersion;
+            return retObj;
+        }
     }
 
 }

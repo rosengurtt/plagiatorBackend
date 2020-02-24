@@ -24,20 +24,58 @@ namespace Plagiator.Music.Models
             Notes = RemoveBassNotes(notes).ToList();
         }
 
-        public IEnumerable<int> Pitches
+        public List<int> Pitches
         {
             get
             {
+                var retObj = new List<int>();
                 foreach (var note in Notes)
-                    yield return note.Pitch;
+                    retObj.Add(note.Pitch);
+                return retObj;
             }
         }
-        public IEnumerable<int> DurationsInTicks
+        public List<int> DurationsInTicks
         {
             get
             {
+                var retObj = new List<int>();
                 foreach (var note in Notes)
-                    yield return note.DurationInTicks;
+                    retObj.Add(note.DurationInTicks);
+                return retObj;
+            }
+        }
+
+        public List<string> DurationsInTicksAsStrings
+        {
+            get
+            {
+                return PatternUtilities.ConvertToListOfStrings(DurationsInTicks);
+            }
+        }
+        public List<int> DeltaPitches
+        {
+            get
+            {
+                var retObj = new List<int>();
+                retObj.Add(0);
+                for (int i = 1; i < Pitches.Count(); i++)
+                    retObj.Add(Pitches[i] - Pitches[i - 1]);
+                return retObj;
+            }
+        }
+
+        public List<string> DeltaPitchesAsStrings
+        {
+            get
+            {
+                return PatternUtilities.ConvertToListOfStrings(DeltaPitches);
+            }
+        }
+        public IEnumerable<string> AsListOfStrings
+        {
+            get
+            {
+                return DeltaPitches.Zip(DurationsInTicks, (a, b) => $"({a}-{b})");
             }
         }
 

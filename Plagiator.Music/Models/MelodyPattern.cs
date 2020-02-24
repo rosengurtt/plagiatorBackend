@@ -44,7 +44,8 @@ namespace Plagiator.Music.Models
                     throw new Exception("Invalid string for a melody pattern");
             }
         }
-       
+
+
         public Pattern AsPattern
         {
             get

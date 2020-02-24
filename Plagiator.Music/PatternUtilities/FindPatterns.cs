@@ -22,21 +22,20 @@ namespace Plagiator.Music
             {
                 var notes = song.Versions[0].NotesOfInstrument(instr);
                 var melody = new Melody(notes);
-                var elements = new List<int>();
+                var elements = new List<string>();
                 switch (patternType)
                 {
                     case PatternType.Pitch:
-                        var pitches = melody.Pitches.ToList();
-                        for (int i = 1; i < pitches.Count-1; i++)
-                        {
-                            elements.Add(pitches[i] - pitches[i - 1]);
-                        }
+                        elements = melody.DeltaPitchesAsStrings;
                         break;
                     case PatternType.Rythm:
-                        elements = melody.DurationsInTicks.ToList();
+                        elements = melody.DurationsInTicksAsStrings;
+                        break;
+                    case PatternType.Melody:
+                        elements = melody.AsListOfStrings.ToList();
                         break;
                 }
-                var patterns = FindPatternsInListOfIntegers(elements, minLengthToSearch, maxLengthToSearch);
+                var patterns = FindPatternsInListOfStrings(elements, minLengthToSearch, maxLengthToSearch);
                 foreach (var pat in patterns)
                 {
                     var patito = new Pattern() { AsString = pat.Key, PatternTypeId = patternType };
@@ -59,7 +58,7 @@ namespace Plagiator.Music
                     retObj[patito] = ocur;
                 }
             }
-            return retObj;
+            return SimplifyPatterns(retObj);
         }
 
         private static Note FindNoteOfSong(Note note, Song song, int version, GeneralMidi2Program instr)
@@ -71,61 +70,61 @@ namespace Plagiator.Music
                             .FirstOrDefault();
         }
 
-        public static Dictionary<Pattern, List<Occurrence>> FindMelodyPatternsInSong(
-           Dictionary<Pattern, List<Occurrence>> pitchPatterns,
-           Dictionary<Pattern, List<Occurrence>> rythmPatterns)
-        {
-            var retObj = new Dictionary<Pattern, List<Occurrence>>();
-            foreach (var pitchPat in pitchPatterns.Keys)
-            {
-                var pitchPatito = new PitchPattern(pitchPat);
+        //public static Dictionary<Pattern, List<Occurrence>> FindMelodyPatternsInSong(
+        //   Dictionary<Pattern, List<Occurrence>> pitchPatterns,
+        //   Dictionary<Pattern, List<Occurrence>> rythmPatterns)
+        //{
+        //    var retObj = new Dictionary<Pattern, List<Occurrence>>();
+        //    foreach (var pitchPat in pitchPatterns.Keys)
+        //    {
+        //        var pitchPatito = new PitchPattern(pitchPat);
 
-                var lengthPitchPatito = pitchPatito.DeltaPitches.Count + 1;
-                foreach (var rythmPat in rythmPatterns.Keys)
-                {
-                    var rythmPatito = new RythmPattern(rythmPat);
-                    var lengthRythmPatito = rythmPatito.RelativeDurations.Count;
-                    if (lengthPitchPatito == lengthRythmPatito)
-                    {
-
-
-                        var occurrencesPitchPat = pitchPatterns[pitchPat];
-                        var occurrencesRythmPat = rythmPatterns[rythmPat];
+        //        var lengthPitchPatito = pitchPatito.DeltaPitches.Count + 1;
+        //        foreach (var rythmPat in rythmPatterns.Keys)
+        //        {
+        //            var rythmPatito = new RythmPattern(rythmPat);
+        //            var lengthRythmPatito = rythmPatito.RelativeDurations.Count;
+        //            if (lengthPitchPatito == lengthRythmPatito)
+        //            {
 
 
+        //                var occurrencesPitchPat = pitchPatterns[pitchPat];
+        //                var occurrencesRythmPat = rythmPatterns[rythmPat];
 
-                        var ocFirstNotes = new List<Note>();
-                        var ocLastNotes = new List<Note>();
-                        foreach (var ocpi in pitchPatterns[pitchPat])
-                        {
-                            foreach (var ocry in rythmPatterns[rythmPat])
-                            {
-                                if (ocpi.FirstNote.IsEqual(ocry.FirstNote) && ocpi.LastNote.IsEqual(ocry.LastNote))
-                                {
-                                    ocFirstNotes.Add(ocpi.FirstNote);
-                                    ocLastNotes.Add(ocpi.LastNote);
-                                }
-                            }
-                        }
-                        if (ocFirstNotes.Count > 0)
-                        {
-                            var melPat = (new MelodyPattern(pitchPatito, rythmPatito)).AsPattern;
-                            retObj[melPat] = new List<Occurrence>();
-                            for (int i = 0; i < ocFirstNotes.Count; i++)
-                            {
-                                retObj[melPat].Add(new Occurrence()
-                                {
-                                    FirstNote = ocFirstNotes[i],
-                                    LastNote = ocLastNotes[i],
-                                    Pattern = melPat
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            return retObj;
-        }
+
+
+        //                var ocFirstNotes = new List<Note>();
+        //                var ocLastNotes = new List<Note>();
+        //                foreach (var ocpi in pitchPatterns[pitchPat])
+        //                {
+        //                    foreach (var ocry in rythmPatterns[rythmPat])
+        //                    {
+        //                        if (ocpi.FirstNote.IsEqual(ocry.FirstNote) && ocpi.LastNote.IsEqual(ocry.LastNote))
+        //                        {
+        //                            ocFirstNotes.Add(ocpi.FirstNote);
+        //                            ocLastNotes.Add(ocpi.LastNote);
+        //                        }
+        //                    }
+        //                }
+        //                if (ocFirstNotes.Count > 0)
+        //                {
+        //                    var melPat = (new MelodyPattern(pitchPatito, rythmPatito)).AsPattern;
+        //                    retObj[melPat] = new List<Occurrence>();
+        //                    for (int i = 0; i < ocFirstNotes.Count; i++)
+        //                    {
+        //                        retObj[melPat].Add(new Occurrence()
+        //                        {
+        //                            FirstNote = ocFirstNotes[i],
+        //                            LastNote = ocLastNotes[i],
+        //                            Pattern = melPat
+        //                        });
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return retObj;
+        //}
 
 
         /// <summary>
@@ -134,6 +133,83 @@ namespace Plagiator.Music
         /// </summary>
         /// <param name="numbers"></param>
         /// <returns></returns>
+        /// 
+
+        public static Dictionary<Pattern, List<Occurrence>> SimplifyPatterns(Dictionary<Pattern, List<Occurrence>> patternsOc)
+        {
+            var patterns = patternsOc.Keys.ToList();
+
+            var simplifiedPatterns = new Dictionary<Pattern, List<Occurrence>>();
+
+            if (patterns.Count > 0 && patterns[0].PatternTypeId == PatternType.Rythm)
+            {
+                foreach (var pat in patterns)
+                {
+                    var durationsAsStrings = pat.AsString.Split(",").ToList();
+                    var durationsAsIntegers = ConvertToListOfIntegers(durationsAsStrings);
+
+                    // Simplify cases like 17,15,16 to 1,1,1
+                    if (durationsAsIntegers.Min() > 4 && (durationsAsIntegers.Max() - durationsAsIntegers.Min() <= 2))
+                    {
+                        var simplifiedPattern = new Pattern
+                        {
+                            AsString = "1",
+                            PatternTypeId = PatternType.Rythm
+                        };
+                        if (!simplifiedPatterns.Keys.Contains(simplifiedPattern))
+                        {
+                            simplifiedPatterns[simplifiedPattern] = new List<Occurrence>();
+                        }
+                        foreach (var oc in patternsOc[pat])
+                        {
+                            var clonito = oc.Clone();
+                            clonito.Pattern = simplifiedPattern;
+                            simplifiedPatterns[simplifiedPattern].Add(clonito);
+                        }
+                        continue;
+                    }
+                    // Divide by the maximum common divisor, so for ex 4,2,2 is converted to 2,1,1
+                    var relativeDurations = new List<int>();
+                    int gcd = GCD(durationsAsIntegers.ToArray());
+                    for (int i = 0; i < durationsAsIntegers.Count; i++)
+                        relativeDurations.Add(durationsAsIntegers[i] / gcd);
+                    // If the pattern itself has a pattern, get the shortest pattern
+                    // For ex instead of 2,1,2,1,2,1 we want just 2,1
+                    relativeDurations = PatternUtilities.GetShortestPattern(relativeDurations);
+                    var rythmPattern = new RythmPattern(relativeDurations);
+                    var simplifiedPattern2 = new Pattern
+                    {
+                        AsString = rythmPattern.AsString,
+                        PatternTypeId = PatternType.Rythm
+                    };
+                    if (!simplifiedPatterns.Keys.Contains(simplifiedPattern2))
+                    {
+                        simplifiedPatterns[simplifiedPattern2] = new List<Occurrence>();
+                    }
+                    foreach (var oc in patternsOc[pat])
+                    {
+                        var clonito = oc.Clone();
+                        clonito.Pattern = simplifiedPattern2;
+                        simplifiedPatterns[simplifiedPattern2].Add(clonito);
+                    }
+                }
+                return simplifiedPatterns;
+            }
+            else
+                return patternsOc;
+        }
+
+        private static List<List<int>> GetPatternsAsListOfDurations(List<Pattern> patterns)
+        {
+            var retObj = new List<List<int>>();
+            foreach (var pat in patterns)
+            {
+                var durationsAsStrings = pat.AsString.Split(",").ToList();
+                var durationsAsIntegers = ConvertToListOfIntegers(durationsAsStrings);
+                retObj.Add(durationsAsIntegers);
+            }
+            return retObj;
+        }
         public static List<int> GetShortestPattern(List<int> numbers)
         {
             var divisors = GetDivisorsOfNumber(numbers.Count).OrderByDescending(x => x);
@@ -165,6 +241,15 @@ namespace Plagiator.Music
             {
                 if (number % i == 0) yield return i;
             }
+        }
+        private static int GCD(int[] numbers)
+        {
+            return numbers.Aggregate(GCD);
+        }
+
+        private static int GCD(int a, int b)
+        {
+            return b == 0 ? a : GCD(b, a % b);
         }
     }
 
