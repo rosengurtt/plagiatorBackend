@@ -66,6 +66,13 @@ namespace Plagiator.Music.Models
             }
             Versions[0].Notes = MidiProcessing.QuantizeNotes(this, 0).ToList();
 
+            TempoChanges = MidiProcessing.GetTempoChanges(this);
+            ProcessedMidiBase64Encoded = MidiProcessing.GetMidiFromNotes(this, 0);
+        }
+
+        public void FindSongPatterns()
+        {
+
             Versions[0].Occurrences = new List<Occurrence>();
             var pitchPatterns = PatternUtilities.FindPatternsOfTypeInSong(this, 0, PatternType.Pitch);
             foreach (var p in pitchPatterns.Keys)
@@ -83,8 +90,6 @@ namespace Plagiator.Music.Models
                 Versions[0].Occurrences = Versions[0].Occurrences.Concat(melodyPatterns[p]).ToList();
             }
 
-            TempoChanges = MidiProcessing.GetTempoChanges(this);
-            ProcessedMidiBase64Encoded = MidiProcessing.GetMidiFromNotes(this, 0);
         }
 
 

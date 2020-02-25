@@ -78,6 +78,8 @@ namespace SQLDBAccess.DataAccess
             await Context.SaveChangesAsync();
             return song;
         }
+
+
         public async Task DeleteSong(int songId)
         {
             var songItem = await Context.Songs.Include(x => x.Style)
@@ -145,11 +147,13 @@ namespace SQLDBAccess.DataAccess
 
 
         Task<Pattern> GetPatternByStringAndTypeAsync(string patternString, PatternType patternType);
-        Task<Pattern> AddPatternAsync(Pattern pattern);
+        Pattern AddPatternAsync(Pattern pattern);
         Task<Occurrence> GetOccurrenceByIdAsync(int ocId);
 
         Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(int songVersionId, int patternId);
 
         Task<Occurrence> AddOccurrence(Occurrence oc);
+
+        void DetachSong(Song song);
     }
 }

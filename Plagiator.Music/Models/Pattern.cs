@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Plagiator.Music.Models
 {
@@ -12,6 +13,7 @@ namespace Plagiator.Music.Models
 
         public string AsString { get; set; }
 
+        [NotMapped]
         public int Length
         {
             get
@@ -21,6 +23,15 @@ namespace Plagiator.Music.Models
         }
 
         public PatternType PatternTypeId { get; set; }
+
+        public Pattern Clone()
+        {
+            return new Pattern()
+            {
+                AsString = this.AsString,
+                PatternTypeId = this.PatternTypeId
+            };
+        }
 
     }
     public enum PatternType : Byte

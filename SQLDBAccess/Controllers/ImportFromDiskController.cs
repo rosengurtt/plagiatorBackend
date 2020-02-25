@@ -115,7 +115,12 @@ namespace SQLDBAccess.Controllers
                 };
                 song = MidiProcessing.ComputeSongStats(song);
                 song.TimeSignature = await SongRepository.GetTimeSignature(song.TimeSignature);
+
+
                 song.NormalizeSong();
+                song = await SongRepository.AddSong(song);
+
+                song.FindSongPatterns();
 
                 foreach (var oc in song.Versions[0].Occurrences)
                 {
@@ -123,13 +128,13 @@ namespace SQLDBAccess.Controllers
                     var patito = await SongRepository.GetPatternByStringAndTypeAsync(pattern.AsString, pattern.PatternTypeId);
                     if (patito == null)
                     {
-                        patito = await SongRepository.AddPatternAsync(pattern);
+                        patito = SongRepository.AddPatternAsync(pattern);
                     }
                     oc.Pattern = patito;
                     oc.PatternId = patito.Id;
+                    oc.SongVersionId = song.Versions[0].Id;
                 }
-
-                await SongRepository.AddSong(song);
+                await SongRepository.UpdateSong(song);
 
 
                 var outputPath = Path.Combine(@"C:\music\procesados", song.Name);

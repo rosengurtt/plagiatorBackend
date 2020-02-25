@@ -30,10 +30,15 @@ namespace Plagiator.Music.Models
             retObj.Pattern = new Pattern { 
                 AsString = this.Pattern.AsString, 
                 PatternTypeId = this.Pattern.PatternTypeId
-            };
-            retObj.FirstNote = this.FirstNote.Clone();
-            retObj.LastNote = this.LastNote.Clone();
+        };
+            if (FirstNote != null)
+            {
+                retObj.FirstNote = this.FirstNote.Clone();
+                retObj.LastNote = this.LastNote.Clone();
+            }
             retObj.SongVersion = this.SongVersion;
+            retObj.FirstNoteId = this.FirstNoteId;
+            retObj.LastNoteId = this.LastNoteId;
             return retObj;
         }
     }

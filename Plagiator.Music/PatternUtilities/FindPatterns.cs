@@ -48,10 +48,11 @@ namespace Plagiator.Music
                         var lastNote = melody.Notes[oc + patternLength];
                         var noteOfSongCorrespondingToLastNote = FindNoteOfSong(lastNote, song, version, instr);
 
-                        var o = new Occurrence() { 
-                            Pattern = patito, 
-                            FirstNote = noteOfSongCorrespondingToFirstNote,
-                            LastNote= noteOfSongCorrespondingToLastNote
+                        var o = new Occurrence() {
+                            Pattern = patito,
+                            FirstNoteId = noteOfSongCorrespondingToFirstNote.Id,
+                            LastNoteId = noteOfSongCorrespondingToLastNote.Id,
+                            SongVersionId = song.Versions[version].Id
                         };
                         ocur.Add(o);
                     }
@@ -70,70 +71,6 @@ namespace Plagiator.Music
                             .FirstOrDefault();
         }
 
-        //public static Dictionary<Pattern, List<Occurrence>> FindMelodyPatternsInSong(
-        //   Dictionary<Pattern, List<Occurrence>> pitchPatterns,
-        //   Dictionary<Pattern, List<Occurrence>> rythmPatterns)
-        //{
-        //    var retObj = new Dictionary<Pattern, List<Occurrence>>();
-        //    foreach (var pitchPat in pitchPatterns.Keys)
-        //    {
-        //        var pitchPatito = new PitchPattern(pitchPat);
-
-        //        var lengthPitchPatito = pitchPatito.DeltaPitches.Count + 1;
-        //        foreach (var rythmPat in rythmPatterns.Keys)
-        //        {
-        //            var rythmPatito = new RythmPattern(rythmPat);
-        //            var lengthRythmPatito = rythmPatito.RelativeDurations.Count;
-        //            if (lengthPitchPatito == lengthRythmPatito)
-        //            {
-
-
-        //                var occurrencesPitchPat = pitchPatterns[pitchPat];
-        //                var occurrencesRythmPat = rythmPatterns[rythmPat];
-
-
-
-        //                var ocFirstNotes = new List<Note>();
-        //                var ocLastNotes = new List<Note>();
-        //                foreach (var ocpi in pitchPatterns[pitchPat])
-        //                {
-        //                    foreach (var ocry in rythmPatterns[rythmPat])
-        //                    {
-        //                        if (ocpi.FirstNote.IsEqual(ocry.FirstNote) && ocpi.LastNote.IsEqual(ocry.LastNote))
-        //                        {
-        //                            ocFirstNotes.Add(ocpi.FirstNote);
-        //                            ocLastNotes.Add(ocpi.LastNote);
-        //                        }
-        //                    }
-        //                }
-        //                if (ocFirstNotes.Count > 0)
-        //                {
-        //                    var melPat = (new MelodyPattern(pitchPatito, rythmPatito)).AsPattern;
-        //                    retObj[melPat] = new List<Occurrence>();
-        //                    for (int i = 0; i < ocFirstNotes.Count; i++)
-        //                    {
-        //                        retObj[melPat].Add(new Occurrence()
-        //                        {
-        //                            FirstNote = ocFirstNotes[i],
-        //                            LastNote = ocLastNotes[i],
-        //                            Pattern = melPat
-        //                        });
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return retObj;
-        //}
-
-
-        /// <summary>
-        /// When we have a repetitive sequence like 2,1,2,1,2,1 we want to keep just
-        /// 2,1 and discard the rest
-        /// </summary>
-        /// <param name="numbers"></param>
-        /// <returns></returns>
-        /// 
 
         public static Dictionary<Pattern, List<Occurrence>> SimplifyPatterns(Dictionary<Pattern, List<Occurrence>> patternsOc)
         {

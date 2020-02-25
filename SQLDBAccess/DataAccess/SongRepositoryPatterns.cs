@@ -21,11 +21,16 @@ namespace SQLDBAccess.DataAccess
             return await Context.Patterns
                 .Where(a => a.AsString == patternString & a.PatternTypeId== patternType).FirstOrDefaultAsync();
         }
-        public async Task<Pattern> AddPatternAsync(Pattern pattern)
+        public Pattern AddPatternAsync(Pattern pattern)
         {
-            Context.Patterns.Add(pattern);
-            await Context.SaveChangesAsync();
-            return pattern;
+            return Context.Patterns
+                  .FromSqlRaw($"insert into Pattern(AsString, PatternTypeId) values ('{pattern.AsString}', {(int)pattern.PatternTypeId}) SELECT * FROM Pattern WHERE id = SCOPE_IDENTITY();")
+                  .ToList().FirstOrDefault();
+        }
+
+        public void DetachSong(Song song)
+        {
+            Context.Entry(song).State = EntityState.Detached;
         }
         public async Task<Occurrence> GetOccurrenceByIdAsync(int ocId)
         {
@@ -45,8 +50,6 @@ namespace SQLDBAccess.DataAccess
                     PatternId = occurrence.PatternId,
                     FirstNoteId = occurrence.FirstNoteId,
                     FirstNote = occurrence.FirstNote,
-                    LastNoteId = occurrence.LastNoteId,
-                    LastNote = occurrence.LastNote,
                     Pattern = occurrence.Pattern
                 }
                 )
