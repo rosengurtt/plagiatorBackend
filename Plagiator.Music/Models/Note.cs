@@ -20,6 +20,14 @@ namespace Plagiator.Music.Models
         public long EndSinceBeginningOfSongInTicks { get; set; }
         public bool IsPercussion { get; set; }
 
+        /// <summary>
+        /// Basically, the same as a track
+        /// If there were no cases of 2 tracks with the same intrument, we would need it
+        /// But because we may have 2 pianos for example, if we don't keep separated we
+        /// loose important information
+        /// </summary>
+        public int Voice { get; set; }
+
 
         public GeneralMidi2Program Instrument { get; set; }
         public List<PitchBendItem> PitchBending { get; set; }

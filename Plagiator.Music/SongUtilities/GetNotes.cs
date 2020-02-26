@@ -20,8 +20,10 @@ namespace Plagiator.Music.SongUtilities
             var notesOnBecauseOfSustainPedal = new List<Note>();
             var instrumentOfChannel = new GeneralMidi2Program[16];
 
+            int chunkNo = -1;
             foreach (TrackChunk chunk in midiFile.Chunks)
             {
+                chunkNo++;
                 var currentNotes = new List<Note>();
                 long currentTick = 0;
 
@@ -48,7 +50,7 @@ namespace Plagiator.Music.SongUtilities
                         foreach(var n in notesOnBecauseOfSustainPedal)
                         {
                             ProcessNoteOff(n.Pitch, currentNotes, retObj, currentTick, 
-                                n.Instrument);
+                                n.Instrument, chunkNo);
                         }
                         continue;
                     }
@@ -60,7 +62,7 @@ namespace Plagiator.Music.SongUtilities
                             ProcessNoteOn(noteOnEvent.NoteNumber, noteOnEvent.Velocity,
                                 currentNotes, retObj, currentTick, 
                                 instrumentOfChannel[noteOnEvent.Channel],
-                                IsPercussionEvent(eventito));
+                                IsPercussionEvent(eventito), chunkNo);
                         }
                         continue;
                     }
@@ -68,7 +70,7 @@ namespace Plagiator.Music.SongUtilities
                     {
                         NoteOffEvent noteOffEvent = eventito as NoteOffEvent;
                         ProcessNoteOff(noteOffEvent.NoteNumber, currentNotes, retObj, currentTick,
-                            instrumentOfChannel[noteOffEvent.Channel]);
+                            instrumentOfChannel[noteOffEvent.Channel], chunkNo);
                         continue;
                     }
                     if (eventito is PitchBendEvent)
@@ -111,7 +113,7 @@ namespace Plagiator.Music.SongUtilities
 
         private static void ProcessNoteOn(byte pitch, byte volume, List<Note> currentNotes,
                 List<Note> retObj, long currentTick, GeneralMidi2Program instrument,
-                bool isPercussion)
+                bool isPercussion, int voice)
         {
 
             if (volume > 0)
@@ -122,7 +124,8 @@ namespace Plagiator.Music.SongUtilities
                     Pitch = pitch,
                     StartSinceBeginningOfSongInTicks = currentTick,
                     Volume = volume,
-                    IsPercussion = isPercussion
+                    IsPercussion = isPercussion,
+                    Voice = voice
                 };
                 currentNotes.Add(notita);
             }
@@ -138,9 +141,9 @@ namespace Plagiator.Music.SongUtilities
             }
         }
         private static void ProcessNoteOff(byte pitch, List<Note> currentNotes,
-         List<Note> retObj, long currentTick, GeneralMidi2Program intrument)
+         List<Note> retObj, long currentTick, GeneralMidi2Program intrument, int voice)
         {
-            ProcessNoteOn(pitch, 0, currentNotes, retObj, currentTick, intrument, false);
+            ProcessNoteOn(pitch, 0, currentNotes, retObj, currentTick, intrument, false, voice);
         }
 
         private static bool IsPercussionEvent(MidiEvent eventito)

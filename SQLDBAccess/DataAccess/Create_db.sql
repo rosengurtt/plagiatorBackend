@@ -200,6 +200,7 @@ CREATE TABLE Note(
 	EndSinceBeginningOfSongInTicks bigint NOT NULL,
 	Instrument tinyint NOT NULL,
 	IsPercussion bit null,
+	Voice int not null,
 	SongVersionId bigint not null
 )
 ALTER TABLE Note  WITH CHECK ADD  CONSTRAINT FK_Note_SongVersionId FOREIGN KEY(SongVersionId)
