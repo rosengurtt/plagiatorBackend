@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 
 namespace Plagiator.Api.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class ImportFromDiskController : ControllerBase
     {
         private IRepository Repository;
@@ -108,17 +110,27 @@ namespace Plagiator.Api.Controllers
                     MidiBase64Encoded = midiBase64encoded,
                 };
                 song.SongStats = MidiUtilities.GetSongStats(midiBase64encoded);
-                song.TimeSignature = await Repository.GetTimeSignature(song.TimeSignature);
+                // The following line is  used to get the id of the time signature. If we don't
+                // provide the id when saving the song, it will create a duplicated time signature
+                // in the TimeSignatures table
+                song.SongStats.TimeSignature = await Repository.GetTimeSignature(song.SongStats.TimeSignature);
 
-
+                song.SongSimplifications = new List<SongSimplification>();
+                song.SongSimplifications.Add(MidiUtilities.GetSimplificationZeroOfSong(midiBase64encoded));
+                song.Bars = MidiUtilities.GetBarsOfSong(midiBase64encoded, song.SongSimplifications[0]);
+                song.SongSimplifications[0].Notes = MidiUtilities.QuantizeNotes(song.SongSimplifications[0], song.Bars)
+                    .ToList();
+                song.TempoChanges = MidiUtilities.GetTempoChanges(midiBase64encoded);
+                song.SongStats.NumberBars = song.Bars.Count();
                 song = await Repository.AddSong(song);
 
 
-            }            }
+
+            }
             catch (Exception sorete)
             {
 
             }
-
         }
+    }
 }

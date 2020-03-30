@@ -14,6 +14,7 @@ namespace Plagiator.Midi
         /// <returns></returns>
         private static List<SetTempoEvent> QuantizeTempos(List<MidiEvent> evs)
         {
+            var retObj = new List<SetTempoEvent>();
             int threshold = 15; // If the tempo change is less than 15%, ignore it
             var tempoEvs = new List<SetTempoEvent>();
             foreach (var ev in evs)
@@ -22,8 +23,7 @@ namespace Plagiator.Midi
                 var evito = (SetTempoEvent)ev;
                 tempoEvs.Add(evito);
             }
-            if (tempoEvs.Count == 0) return null;
-            var retObj = new List<SetTempoEvent>();
+            if (tempoEvs.Count == 0) return retObj;
             retObj.Add(tempoEvs[0]);
             for (int i = 0; i < tempoEvs.Count - 1; i++)
             {

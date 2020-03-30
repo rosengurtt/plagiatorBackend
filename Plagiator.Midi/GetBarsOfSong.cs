@@ -13,7 +13,7 @@ namespace Plagiator.Midi
         /// </summary>
         /// <param name="base64encodedMidiFile"></param>
         /// <returns></returns>
-        public static List<Bar> GetBarsOfSong(string base64encodedMidiFile)
+        public static List<Bar> GetBarsOfSong(string base64encodedMidiFile, SongSimplification songSimplification)
         {
             List<Bar> retObj = new List<Bar>();
             int barNumber = 1;
@@ -42,13 +42,13 @@ namespace Plagiator.Midi
 
             while (currentTick < songDurationInTicks)
             {
-                if (TempoEvents.Count > 0)
+                if ( TempoEvents.Count > 0)
                     currentTempo = (int)TempoEvents[tempoIndex].MicrosecondsPerQuarterNote;
                 long timeOfNextTimeSignatureEvent = songDurationInTicks;
                 if (timeSignatureEvents.Count - 1 > timeSigIndex)
                     timeOfNextTimeSignatureEvent = timeSignatureEvents[timeSigIndex + 1].DeltaTime;
                 long timeOfNextSetTempoEvent = songDurationInTicks;
-                if (TempoEvents.Count - 1 > tempoIndex)
+                if ( TempoEvents.Count - 1 > tempoIndex)
                     timeOfNextSetTempoEvent = TempoEvents[tempoIndex + 1].DeltaTime;
 
                 long lastTickOfBarToBeAdded = currentTimeSignature.Numerator * ticksPerBeat + currentTick;
@@ -67,8 +67,8 @@ namespace Plagiator.Midi
                         TicksFromBeginningOfSong = currentTick,
                         TimeSignature = timeSignature,
                         TempoInMicrosecondsPerQuarterNote = currentTempo
-
                     };
+                    bar.HasTriplets = HasBarTriplets(songSimplification, bar);
                     retObj.Add(bar);
                     currentTick += currentTimeSignature.Numerator * ticksPerBeat;
                     lastTickOfBarToBeAdded += currentTimeSignature.Numerator * ticksPerBeat;

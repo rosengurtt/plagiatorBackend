@@ -7,7 +7,7 @@ namespace Plagiator.Midi
     {
         public static string NormalizeTicksPerQuarterNote(string base64encodedMidiFile)
         {
-            int standardTicksPerQuarterNote = 96;
+            short standardTicksPerQuarterNote = 96;
             var midiFile = MidiFile.Read(base64encodedMidiFile);
             midiFile = ConvertDeltaTimeToAccumulatedTime(midiFile);
             var originalTicksPerQuarterNote = GetTicksPerBeatOfSong(base64encodedMidiFile);
@@ -21,6 +21,7 @@ namespace Plagiator.Midi
                 }
             }
             midiFile = ConvertAccumulatedTimeToDeltaTime(midiFile);
+            midiFile.TimeDivision= new  TicksPerQuarterNoteTimeDivision(standardTicksPerQuarterNote);
             return Base64EncodeMidiFile(midiFile);
         }
     }

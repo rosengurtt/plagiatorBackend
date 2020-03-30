@@ -1,198 +1,204 @@
-DROP TABLE IF EXISTS  Occurrence
-DROP TABLE IF EXISTS  Pattern
-DROP TABLE IF EXISTS  PatternType
-DROP TABLE IF EXISTS  PitchBendItem
-DROP TABLE IF EXISTS  Note
+DROP TABLE IF EXISTS  Occurrences
+DROP TABLE IF EXISTS  Patterns
 DROP TABLE IF EXISTS  PatternTypes
-DROP TABLE IF EXISTS  ArpeggioOccurrence
-DROP TABLE IF EXISTS  Arpeggio
-DROP TABLE IF EXISTS  MelodyPatternOccurrence
-DROP TABLE IF EXISTS  MelodyPattern
-DROP TABLE IF EXISTS  PitchPattern
-DROP TABLE IF EXISTS  RythmPattern
-DROP TABLE IF EXISTS  SongVersion
-DROP TABLE IF EXISTS  TempoChange
-DROP TABLE IF EXISTS  Bar
-DROP TABLE IF EXISTS  Song
-DROP TABLE IF EXISTS  Band
-DROP TABLE IF EXISTS  Style
-DROP TABLE IF EXISTS  TimeSignature
+DROP TABLE IF EXISTS  PitchBendItems
+DROP TABLE IF EXISTS  Notes
+DROP TABLE IF EXISTS  PatternTypes
+DROP TABLE IF EXISTS  RythmPatterns
+DROP TABLE IF EXISTS  SongSimplifications
+DROP TABLE IF EXISTS  TempoChanges
+DROP TABLE IF EXISTS  Bars
+DROP TABLE IF EXISTS  SongStats
+DROP TABLE IF EXISTS  Songs
+DROP TABLE IF EXISTS  Bands
+DROP TABLE IF EXISTS  Styles
+DROP TABLE IF EXISTS  TimeSignatures
 
-CREATE TABLE TimeSignature(
+CREATE TABLE TimeSignatures(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	Numerator int NOT NULL,
 	Denominator int NOT NULL,
 )
 
 
-SET IDENTITY_INSERT TimeSignature ON
+SET IDENTITY_INSERT TimeSignatures ON
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (1, 4, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (2, 3, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (3, 2, 2)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (4, 6, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (5, 12, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (6, 7, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (7, 2, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (8, 5, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (9, 9, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (10, 3, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (11, 9, 16)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (12, 6, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (13, 8, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (14, 12, 16)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (15, 3, 2)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (16, 6, 16)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (17, 4, 2)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (18, 4, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (19, 7, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (20, 13, 8)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (21, 12, 4)
 
-insert into TimeSignature(Id, Numerator, Denominator)
+insert into TimeSignatures(Id, Numerator, Denominator)
 values (22, 8, 4)
-SET IDENTITY_INSERT TimeSignature OFF
+SET IDENTITY_INSERT TimeSignatures OFF
 
-CREATE TABLE Style(
+CREATE TABLE Styles(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	[Name] nvarchar(60) NULL,
 )
-ALTER TABLE Style ADD CONSTRAINT UC_Style UNIQUE (Name);
+ALTER TABLE Styles ADD CONSTRAINT UC_Styles UNIQUE (Name);
 
-SET IDENTITY_INSERT Style ON
+SET IDENTITY_INSERT Styles ON
 
-insert into Style(Id, [Name])
+insert into Styles(Id, [Name])
 values (1, 'Classic')
 
-insert into Style(Id, [Name])
+insert into Styles(Id, [Name])
 values (2, 'Rock')
 
-insert into Style(Id, [Name])
+insert into Styles(Id, [Name])
 values (3, 'Jazz')
 
-SET IDENTITY_INSERT Style OFF
+SET IDENTITY_INSERT Styles OFF
 
-CREATE TABLE Band(
+CREATE TABLE Bands(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	[Name] nvarchar(100) NOT NULL,
 	StyleId bigint NOT NULL,
 )
-ALTER TABLE Band ADD CONSTRAINT UC_Band UNIQUE (Name);
+ALTER TABLE Bands ADD CONSTRAINT UC_Bands UNIQUE (Name);
 
-ALTER TABLE Band  WITH CHECK ADD  CONSTRAINT FK_Band_Style FOREIGN KEY(StyleId)
-REFERENCES Style (Id)
+ALTER TABLE Bands  WITH CHECK ADD  CONSTRAINT FK_Bands_Styles FOREIGN KEY(StyleId)
+REFERENCES Styles (Id)
 GO
 
-ALTER TABLE Band CHECK CONSTRAINT FK_Band_Style
+ALTER TABLE Bands CHECK CONSTRAINT FK_Bands_Styles
 GO
 
-CREATE TABLE Song(
+create table SongStats(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	Name nvarchar(500) NOT NULL,
-	BandId bigint NULL,
-	StyleId bigint NOT NULL,
-	TempoInBeatsPerMinute int NULL,
-	TempoInMicrosecondsPerBeat int NULL,
-	NumberBars int NULL,
-	NumberOfTicks int NULL,
-	DurationInSeconds int NULL,
-	NumberTracks int NULL,
+    SongId bigint not null,
+	DurationInSeconds bigint null,
+	HasMoreThanOneChannelPerTrack bit NULL,
+	HasMoreThanOneInstrumentPerTrack bit NULL,
+	HighestPitch bigint null,
+	LowestPitch bigint null,
+	NumberBars bigint null,
+	NumberOfTicks bigint null,
+	TempoInBeatsPerMinute bigint null,
+	TempoInMicrosecondsPerBeat bigint null,
 	TimeSignatureId bigint NULL,
-	OriginalMidiBase64Encoded nvarchar(max) NOT NULL,
-	ProcessedMidiBase64Encoded nvarchar(max) NULL,
-	TotalEvents int NULL,
-	TotalNoteEvents int NULL,
-	TotalPitchBendEvents int NULL,
-	TotalControlChangeEvents int NULL,
-	TotalSustainPedalEvents int NULL,
-	TotalChannels int NULL,
-	TotalInstruments int NULL,
-	TotalPercussionInstruments int NULL,
-	TotalTempoChanges int NULL,
-	TotalDifferentPitches int NULL,
-	TotalUniquePitches int NULL,
-	HighestPitch int NULL,
-	LowestPitch int NULL,
-	TotalChannelIndependentEvents int NULL,
-	TotalProgramChangeEvents int NULL,
-	TotalChunks int NULL,
-	TotalMelodicChunks int NULL,
-	TotalChordChunks int NULL,
-	HasMoreThanOneChannelPerChunk bit NULL,
-	HasMoreThanOneInstrumentPerChunk bit NULL,
-	HasPercusion bit NULL
+	TotalDifferentPitches bigint null,
+	TotalUniquePitches bigint null,
+	TotalTracks bigint null,
+    TotalTracksWithoutNotes bigint null,
+    TotalBassTracks bigint null,
+	TotalChordTracks bigint null,
+	TotalMelodicTracks bigint null,
+    TotalPercussionTracks bigint null,
+	TotalInstruments bigint null,
+	TotalPercussionInstruments bigint null,
+    TotalChannels bigint null,
+	TotalTempoChanges bigint null,
+    TotalEvents bigint null,
+	TotalNoteEvents bigint null,
+	TotalPitchBendEvents bigint null,
+	TotalControlChangeEvents bigint null,
+    TotalProgramChangeEvents bigint null,
+	TotalSustainPedalEvents bigint null,
+	TotalChannelIndependentEvents bigint null
 )
 
-ALTER TABLE Song  WITH CHECK ADD  CONSTRAINT FK_Song_Band FOREIGN KEY(BandId)
-REFERENCES Band (Id)
-GO
 
-ALTER TABLE Song CHECK CONSTRAINT FK_Song_Band
-GO
 
-ALTER TABLE Song  WITH CHECK ADD  CONSTRAINT FK_Song_Style FOREIGN KEY(StyleId)
-REFERENCES Style (Id)
-GO
-
-ALTER TABLE Song CHECK CONSTRAINT FK_Song_Style
-GO
-
-ALTER TABLE Song  WITH CHECK ADD  CONSTRAINT FK_Song_TimeSignature FOREIGN KEY(TimeSignatureId)
-REFERENCES TimeSignature (Id)
-GO
-
-ALTER TABLE Song CHECK CONSTRAINT FK_Song_TimeSignature
-GO
-
-CREATE TABLE SongVersion(
+CREATE TABLE Songs(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	VersionNumber int not null,
+	[Name] nvarchar(500) NOT NULL,
+	BandId bigint NULL,
+	StyleId bigint NOT NULL,
+	MidiBase64Encoded nvarchar(max) NOT NULL
+)
+
+
+ALTER TABLE Songs  WITH CHECK ADD  CONSTRAINT FK_Songs_Bands FOREIGN KEY(BandId)
+REFERENCES Bands (Id)
+GO
+
+ALTER TABLE Songs CHECK CONSTRAINT FK_Songs_Bands
+GO
+
+ALTER TABLE Songs  WITH CHECK ADD  CONSTRAINT FK_Songs_Styles FOREIGN KEY(StyleId)
+REFERENCES Styles (Id)
+GO
+
+ALTER TABLE Songs CHECK CONSTRAINT FK_Songs_Styles
+GO
+
+ALTER TABLE SongStats  WITH CHECK ADD  CONSTRAINT FK_SongStats_TimeSignatures FOREIGN KEY(TimeSignatureId)
+REFERENCES TimeSignatures (Id)
+GO
+
+ALTER TABLE SongStats CHECK CONSTRAINT FK_SongStats_TimeSignatures
+GO
+
+
+
+CREATE TABLE SongSimplifications(
+	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+	SimplificationVersion int not null,
 	SongId bigint not null
 ) 
 
 
-CREATE TABLE Note(
+CREATE TABLE Notes(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	Pitch tinyint NOT NULL,
 	Volume tinyint NOT NULL,
@@ -200,83 +206,83 @@ CREATE TABLE Note(
 	EndSinceBeginningOfSongInTicks bigint NOT NULL,
 	Instrument tinyint NOT NULL,
 	IsPercussion bit null,
-	Voice int not null,
-	SongVersionId bigint not null
+	Voice tinyint not null,
+	SongSimplificationId bigint not null
 )
-ALTER TABLE Note  WITH CHECK ADD  CONSTRAINT FK_Note_SongVersionId FOREIGN KEY(SongVersionId)
-REFERENCES SongVersion (Id)
+ALTER TABLE Notes  WITH CHECK ADD  CONSTRAINT FK_Notes_SongSimplifications FOREIGN KEY(SongSimplificationId)
+REFERENCES SongSimplifications (Id)
 
-CREATE TABLE Bar(
+CREATE TABLE Bars(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	BarNumber int NULL,
+	BarNumber bigint null,
 	TicksFromBeginningOfSong bigint NULL,
 	TimeSignatureId bigint NULL,
 	HasTriplets bit NULL,
-	TempoInMicrosecondsPerQuarterNote int null,
+	TempoInMicrosecondsPerQuarterNote bigint null,
 	SongId bigint not null
 )
-ALTER TABLE Bar  WITH CHECK ADD  CONSTRAINT FK_Bar_TimeSignature FOREIGN KEY(TimeSignatureId)
-REFERENCES TimeSignature (Id)
+ALTER TABLE Bars  WITH CHECK ADD  CONSTRAINT FK_Bars_TimeSignatures FOREIGN KEY(TimeSignatureId)
+REFERENCES TimeSignatures (Id)
 
-ALTER TABLE Bar  WITH CHECK ADD  CONSTRAINT FK_Bar_SongId FOREIGN KEY(SongId)
-REFERENCES Song (Id)
+ALTER TABLE Bars  WITH CHECK ADD  CONSTRAINT FK_Bars_Songs FOREIGN KEY(SongId)
+REFERENCES Songs (Id)
 
-CREATE TABLE PitchBendItem(
+CREATE TABLE PitchBendItems(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	TicksSinceBeginningOfSong bigint NULL,
-	Pitch int NULL,
+	Pitch bigint null,
 	NoteId bigint not null
 ) 
-ALTER TABLE PitchBendItem  WITH CHECK ADD  CONSTRAINT FK_PitchBendItem_NoteId FOREIGN KEY(NoteId)
-REFERENCES Note (Id)
+ALTER TABLE PitchBendItems  WITH CHECK ADD  CONSTRAINT FK_PitchBendItems_Notes FOREIGN KEY(NoteId)
+REFERENCES Notes (Id)
 
 
 
-CREATE TABLE TempoChange(
+CREATE TABLE TempoChanges(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	TicksSinceBeginningOfSong bigint NULL,
-	MicrosecondsPerQuarterNote int NULL,
+	MicrosecondsPerQuarterNote bigint null,
 	SongId bigint not null
 ) 
-ALTER TABLE TempoChange  WITH CHECK ADD  CONSTRAINT FK_TempoChange_SongId FOREIGN KEY(SongId)
-REFERENCES Song (Id)
+ALTER TABLE TempoChanges  WITH CHECK ADD  CONSTRAINT FK_TempoChanges_Songs FOREIGN KEY(SongId)
+REFERENCES Songs (Id)
 
-create table PatternType(
+create table PatternTypes(
 	Id tinyint primary key clustered NOT NULL,
 	TypeName varchar(10) not null
 )
 
-insert into PatternType(Id, TypeName)
+insert into PatternTypes(Id, TypeName)
 values (1, 'Pitch')
-insert into PatternType(Id, TypeName)
+insert into PatternTypes(Id, TypeName)
 values (2, 'Rythm')
-insert into PatternType(Id, TypeName)
+insert into PatternTypes(Id, TypeName)
 values (3, 'Melody')
      
 
-CREATE TABLE Pattern(
+CREATE TABLE Patterns(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	AsString varchar(600) not null,
 	PatternTypeId tinyint not null,
 	CONSTRAINT IX_UniquePatterns UNIQUE (AsString, PatternTypeId)
 ) 
-ALTER TABLE Pattern  WITH CHECK ADD  CONSTRAINT FK_Pattern_PatternType FOREIGN KEY(PatternTypeId)
-REFERENCES PatternType (Id)
+ALTER TABLE Patterns  WITH CHECK ADD  CONSTRAINT FK_Patterns_PatternTypes FOREIGN KEY(PatternTypeId)
+REFERENCES PatternTypes (Id)
 
-CREATE TABLE Occurrence(
+CREATE TABLE Occurrences(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	SongVersionId bigint not null,
+	SongSimplificationId bigint not null,
 	PatternId bigint not null,
 	FirstNoteId bigint not null,
 	LastNoteId bigint not null
 ) 
-ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_SongVersionId FOREIGN KEY(SongVersionId)
-REFERENCES SongVersion (Id)
-ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_FirstNoteId FOREIGN KEY(FirstNoteId)
-REFERENCES Note (Id)
-ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_LastNoteId FOREIGN KEY(LastNoteId)
-REFERENCES Note (Id)
-ALTER TABLE Occurrence  WITH CHECK ADD  CONSTRAINT FK_Occurrence_Pattern FOREIGN KEY(PatternId)
-REFERENCES Pattern (Id)
+ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_SongSimplifications FOREIGN KEY(SongSimplificationId)
+REFERENCES SongSimplifications (Id)
+ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_FirstNotes FOREIGN KEY(FirstNoteId)
+REFERENCES Notes (Id)
+ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_LastNotes FOREIGN KEY(LastNoteId)
+REFERENCES Notes (Id)
+ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_Patterns FOREIGN KEY(PatternId)
+REFERENCES Patterns (Id)
 
 

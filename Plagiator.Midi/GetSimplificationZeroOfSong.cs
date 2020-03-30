@@ -14,9 +14,9 @@ namespace Plagiator.Midi
             long songDuration = GetSongDurationInTicks(base64encodedMidiFile);
             var isSustainPedalOn = false;
             var notesOnBecauseOfSustainPedal = new List<Note>();
-            var instrumentOfChannel = new int[16];
+            var instrumentOfChannel = new byte[16];
 
-            int chunkNo = -1;
+            short chunkNo = -1;
             foreach (TrackChunk chunk in midiFile.Chunks)
             {
                 chunkNo++;
@@ -30,7 +30,7 @@ namespace Plagiator.Midi
                     if (eventito is ProgramChangeEvent)
                     {
                         var pg = eventito as ProgramChangeEvent;
-                        instrumentOfChannel[pg.Channel] = (int)pg.ProgramNumber.valor;
+                        instrumentOfChannel[pg.Channel] = (byte)pg.ProgramNumber.valor;
                         continue;
                     }
 
@@ -46,7 +46,7 @@ namespace Plagiator.Midi
                         foreach (var n in notesOnBecauseOfSustainPedal)
                         {
                             ProcessNoteOff(n.Pitch, currentNotes, notesObj, currentTick,
-                                n.Instrument, chunkNo);
+                                n.Instrument, (byte)chunkNo);
                         }
                         continue;
                     }
@@ -108,9 +108,9 @@ namespace Plagiator.Midi
         }
 
 
-        private static void ProcessNoteOn(byte pitch, byte volume, List<Note> currentNotes,
-                List<Note> retObj, long currentTick, int instrument,
-                bool isPercussion, int voice)
+        private static void ProcessNoteOn(short pitch, short volume, List<Note> currentNotes,
+                List<Note> retObj, long currentTick, short instrument,
+                bool isPercussion, short voice)
         {
 
             if (volume > 0)
@@ -137,8 +137,8 @@ namespace Plagiator.Midi
                 }
             }
         }
-        private static void ProcessNoteOff(byte pitch, List<Note> currentNotes,
-         List<Note> retObj, long currentTick, int intrument, int voice)
+        private static void ProcessNoteOff(short pitch, List<Note> currentNotes,
+         List<Note> retObj, long currentTick, short intrument, short voice)
         {
             ProcessNoteOn(pitch, 0, currentNotes, retObj, currentTick, intrument, false, voice);
         }

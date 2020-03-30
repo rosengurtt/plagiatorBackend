@@ -12,10 +12,10 @@ namespace Plagiator.Models.Entities
             }
             public long Id { get; set; }
 
-            public long SongVersionId { get; set; }
+            public long SongSimplificationId { get; set; }
             public SongSimplification SongSimplification { get; set; }
-            public byte Pitch { get; set; }
-            public byte Volume { get; set; }
+            public short Pitch { get; set; }
+            public short Volume { get; set; }
             public long StartSinceBeginningOfSongInTicks { get; set; }
             public long EndSinceBeginningOfSongInTicks { get; set; }
             public bool IsPercussion { get; set; }
@@ -26,10 +26,10 @@ namespace Plagiator.Models.Entities
             /// But because we may have 2 pianos for example, if we don't keep separated we
             /// loose important information
             /// </summary>
-            public int Voice { get; set; }
+            public short Voice { get; set; }
 
 
-            public int Instrument { get; set; }
+            public short Instrument { get; set; }
             public List<PitchBendItem> PitchBending { get; set; }
 
             public int DurationInTicks

@@ -18,7 +18,6 @@ namespace Plagiator.Midi
             retObj.TotalTracks = midiFile.Chunks.Count;
             retObj.DurationInSeconds = GetSongDurationInSeconds(base64EncodedMidi);
             retObj.TimeSignature = GetMainTimeSignatureOfSong(base64EncodedMidi);
-            retObj.NumberBars = GetBarsOfSong(base64EncodedMidi).Count;
             var channels = new List<FourBitNumber>();
             var pitches = new List<SevenBitNumber>();
             var uniquePitches = new List<int>();
@@ -37,6 +36,8 @@ namespace Plagiator.Midi
                 var chunkNoteEvents = 0;
                 var chunkIsDrumChannel = false;
                 var channelsInChunk = new List<FourBitNumber>();
+                var averagePitch = 0;
+
                 foreach (var eventito in chunk.Events)
                 {
                     retObj.TotalEvents++;
@@ -62,6 +63,7 @@ namespace Plagiator.Midi
                                 highestPitch = notEv.NoteNumber.valor;
                             if (notEv.NoteNumber.valor < lowestPitch && notEv.Channel.valor != 9)
                                 lowestPitch = notEv.NoteNumber.valor;
+                            averagePitch += (notEv.NoteNumber.valor - averagePitch) / chunkNoteEvents;
                             if (notEv.Channel.valor == 9)
                             {
                                 if (!percussionInstruments.Contains(notEv.NoteNumber))
@@ -107,14 +109,17 @@ namespace Plagiator.Midi
                 }
                 retObj.TotalNoteEvents += chunkNoteEvents;
                 if (chunkIsDrumChannel)
-                    retObj.HasPercusion = true;
+                    retObj.TotalPercussionTracks++;
                 else
                 {
-                    if (chunkNoteEvents > 0 && (chunkNoteEventsWithNullDeltas / chunkNoteEvents) > 0.5)
+                    if (chunkNoteEvents > 0 && (chunkNoteEventsWithNullDeltas / (double)chunkNoteEvents) > 0.75)
                         retObj.TotalChordTracks++;
-                    else
+                    else if (chunkNoteEvents > 0 && averagePitch > 55)
                         retObj.TotalMelodicTracks++;
+                    else if (chunkNoteEvents > 0 && averagePitch <= 55)
+                        retObj.TotalBassTracks++;
                 }
+                if (chunkNoteEvents == 0) retObj.TotalTracksWithoutNotes++;
                 if (chunkDurationInTicks > songDurationInTicks)
                     songDurationInTicks = chunkDurationInTicks;
                 if (!hasProgramChangeEvent && !instruments.Contains((SevenBitNumber)0))
@@ -136,7 +141,7 @@ namespace Plagiator.Midi
                 retObj.TempoInBeatsPerMinute = (int)Math.Floor(microsoftIsShit);
             }
 
-            return retObj;
+                return retObj;
 
         }
     }
