@@ -5,7 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Library.fs" />
+    <Compile Include="FindPatternsInSong.fs" />
+    <None Include="testing.fsx" />
+    <Compile Include="FindPatterns.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plagiator.Models\Plagiator.Models.csproj" />
   </ItemGroup>
 
 </Project>

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Plagiator.Patterns;
 
 namespace Plagiator.Api.Controllers
 {
@@ -124,6 +125,7 @@ namespace Plagiator.Api.Controllers
                 song.SongStats.NumberBars = song.Bars.Count();
                 song = await Repository.AddSong(song);
 
+                //var lolo = Plagiator.Patterns.Patterns.FindPatternsInListOfStrings()
 
 
             }

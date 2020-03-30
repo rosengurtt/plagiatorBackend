@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Plagiator.Models.enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
@@ -54,11 +55,5 @@ namespace Plagiator.Models.Entities
             };
         }
 
-    }
-    public enum PatternType : Byte
-    {
-        Pitch = 1,
-        Rythm = 2,
-        Melody = 3
     }
 }
