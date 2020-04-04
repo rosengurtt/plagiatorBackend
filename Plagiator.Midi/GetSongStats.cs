@@ -18,6 +18,7 @@ namespace Plagiator.Midi
             retObj.TotalTracks = midiFile.Chunks.Count;
             retObj.DurationInSeconds = GetSongDurationInSeconds(base64EncodedMidi);
             retObj.TimeSignature = GetMainTimeSignatureOfSong(base64EncodedMidi);
+            retObj.InstrumentsAsString = MidiUtilities.GetInstrumentsAsString(base64EncodedMidi);
             var channels = new List<FourBitNumber>();
             var pitches = new List<SevenBitNumber>();
             var uniquePitches = new List<int>();

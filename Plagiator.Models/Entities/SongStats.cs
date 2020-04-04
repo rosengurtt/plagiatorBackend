@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Text;
 
 namespace Plagiator.Models.Entities
@@ -34,6 +36,15 @@ namespace Plagiator.Models.Entities
         public long TotalMelodicTracks { get; set; }
         public long TotalPercussionTracks { get; set; }
         public long TotalInstruments { get; set; }
+        public string InstrumentsAsString { get; set; }
+        [NotMapped]
+        public List<int> Instruments
+        {
+            get
+            {
+                return InstrumentsAsString.Split(",").Select(int.Parse).ToList();
+            }
+        }
         public long TotalPercussionInstruments { get; set; }
         public long TotalChannels { get; set; }
         public long TotalTempoChanges { get; set; }

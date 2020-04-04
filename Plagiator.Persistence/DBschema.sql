@@ -145,6 +145,7 @@ create table SongStats(
 	TotalMelodicTracks bigint null,
     TotalPercussionTracks bigint null,
 	TotalInstruments bigint null,
+    InstrumentsAsString nvarchar(400)  null,
 	TotalPercussionInstruments bigint null,
     TotalChannels bigint null,
 	TotalTempoChanges bigint null,

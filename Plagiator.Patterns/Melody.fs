@@ -6,7 +6,7 @@ open System
 open System.Linq
 open Plagiator.Models.Entities
 
-module public PatternsInSong =
+module public Melody =
 
     let IntersectionComparedToDuration (n1: Note, n2: Note): double =
         let intersection = Math.Min(n1.EndSinceBeginningOfSongInTicks, n2.EndSinceBeginningOfSongInTicks) - Math.Max(n1.StartSinceBeginningOfSongInTicks, n2.StartSinceBeginningOfSongInTicks)

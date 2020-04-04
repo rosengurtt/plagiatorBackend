@@ -14,7 +14,6 @@
     <ProjectReference Include="..\DryWetMidi\Melanchall.DryWetMidi.csproj" />
     <ProjectReference Include="..\Plagiator.Midi\Plagiator.Midi.csproj" />
     <ProjectReference Include="..\Plagiator.Models\Plagiator.Models.csproj" />
-    <ProjectReference Include="..\Plagiator.Patterns\Plagiator.Patterns.fsproj" />
     <ProjectReference Include="..\Plagiator.Persistence\Plagiator.Persistence.csproj" />
   </ItemGroup>
 

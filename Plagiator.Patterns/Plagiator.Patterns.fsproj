@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Melody.fs" />
     <Compile Include="FindPatternsInSong.fs" />
     <None Include="testing.fsx" />
     <Compile Include="FindPatterns.fs" />
