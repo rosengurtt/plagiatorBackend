@@ -1,10 +1,12 @@
 ﻿
 using Melanchall.DryWetMidi.Core;
 using Microsoft.AspNetCore.Mvc;
+using Plagiator.Analysis.Patterns;
 using Plagiator.Api.ErrorHandling;
 using Plagiator.Api.Helpers;
 using Plagiator.Midi;
 using Plagiator.Models.Entities;
+using Plagiator.Models.enums;
 using Plagiator.Persistence;
 using Serilog;
 using System;
@@ -57,7 +59,11 @@ namespace Plagiator.Api.Controllers
                         foreach (var songPath in songsPaths)
                         {
                             var songita = await Repository.GetSongByNameAndBand(Path.GetFileName(songPath), bandName);
-                            if (songita == null) await ProcesameLaSong(songPath, band, style);
+                            if (songita == null)
+                            {
+                                var song = await ProcesameLaSong(songPath, band, style);
+                                if (song != null) await ProcesameLosPatterns(song);
+                            }
                         }
                     }
                 }
@@ -79,16 +85,16 @@ namespace Plagiator.Api.Controllers
 
             var stylito = await Repository.GetStyleByName(style);
             var bandita = await Repository.GetBandByName(band);
-            await ProcesameLaSong(songPath, bandita, stylito);
+            var song = await ProcesameLaSong(songPath, bandita, stylito);
 
             return Ok(new ApiOKResponse("Gracias papi"));
         }
 
-        private async Task ProcesameLaSong(string songPath, Band band, Style style)
+        private async Task<Song> ProcesameLaSong(string songPath, Band band, Style style)
         {
             try
             {
-                if (!songPath.ToLower().EndsWith(".mid")) return;
+                if (!songPath.ToLower().EndsWith(".mid")) return null;
                 try
                 {
                     var lelo = MidiFile.Read(songPath, null);
@@ -96,7 +102,7 @@ namespace Plagiator.Api.Controllers
                 catch (Exception ex)
                 {
                     Log.Error(ex, $"Song {songPath} esta podrida");
-                    return;
+                    return null;
                 }
 
                 var midiBase64encoded = FileSystemUtils.GetBase64encodedFile(songPath);
@@ -124,14 +130,37 @@ namespace Plagiator.Api.Controllers
                 song.SongStats.NumberBars = song.Bars.Count();
                 song = await Repository.AddSong(song);
 
-                //var lolo = Plagiator.Patterns.Patterns.FindPatternsInListOfStrings()
+                return song;
 
 
             }
             catch (Exception sorete)
             {
-
+                return null;
             }
+        }
+  
+        private async Task ProcesameLosPatterns(Song song)
+        {
+            var allOccurrences =  PatternUtilities.FindPatternsOfTypeInSong(song, 0, PatternType.Pitch).Values
+                .Concat(PatternUtilities.FindPatternsOfTypeInSong(song, 0, PatternType.Rythm).Values)
+                .Concat(PatternUtilities.FindPatternsOfTypeInSong(song, 0, PatternType.Melody).Values)
+                .ToList().SelectMany(x=>x).ToList();
+
+            foreach (var oc in allOccurrences)
+            {
+                var pattern = oc.Pattern;
+                var patito = await Repository.GetPatternByStringAndTypeAsync(pattern.AsString, pattern.PatternTypeId);
+                if (patito == null)
+                {
+                    patito = Repository.AddPattern(pattern);
+                }
+                oc.Pattern = patito;
+                oc.PatternId = patito.Id;
+                oc.SongSimplificationId = song.SongSimplifications[0].Id;
+            }
+            song.SongSimplifications[0].Occurrences = allOccurrences;
+            await Repository.UpdateSong(song);
         }
     }
 }
