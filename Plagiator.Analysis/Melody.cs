@@ -58,7 +58,9 @@ namespace Plagiator.Analysis
             get
             {
                 var retObj = new List<int>();
-                retObj.Add(0);
+                // The first delta is calculated using the first pitch and the last pitch
+                retObj.Add(Pitches[0] - Pitches[Pitches.Count() - 1]);
+                // For the rest is the difference between consecutive pithces
                 for (int i = 1; i < Pitches.Count(); i++)
                     retObj.Add(Pitches[i] - Pitches[i - 1]);
                 return retObj;

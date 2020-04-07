@@ -21,7 +21,7 @@ namespace Plagiator.Persistence
 
         public DbSet<TempoChange> TempoChanges { get; set; }
 
-        public DbSet<SongSimplification> SongVersions { get; set; }
+        public DbSet<SongSimplification> SongSimplifications { get; set; }
 
         public DbSet<Pattern> Patterns { get; set; }
         public DbSet<Occurrence> Occurrences { get; set; }

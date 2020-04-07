@@ -1,6 +1,6 @@
 
 using NUnit.Framework;
-using Plagiator.Music;
+using Plagiator.Analysis.Patterns;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,6 +19,13 @@ namespace NUnitTests
             var listita = new List<int> { 3, 3, 4, 5, 7, 8, 3, 5, 4, 3, 3, 5, 3, 3, 4, 5, 2, 1, 3, 4 };
             var patterns = PatternUtilities.FindPatternsInListOfIntegers(listita,3,10).ToList();
             Assert.AreEqual(patterns.Count, 1);
+        }
+
+
+        public void Simplification2works()
+        {
+            var patito = new RythmPattern("");
+
         }
     }
 }

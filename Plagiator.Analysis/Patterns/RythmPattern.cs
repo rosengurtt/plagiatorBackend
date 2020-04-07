@@ -1,5 +1,6 @@
 ﻿
 using Plagiator.Models.Entities;
+using Plagiator.Models.enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -69,6 +70,16 @@ namespace Plagiator.Analysis.Patterns
                 RelativeDurations = Array.ConvertAll(value.Split(","), s => int.Parse(s)).ToList();
             }
         }
+
+        public Pattern AsPattern()
+        {
+            return new Pattern
+            {
+                AsString = this.AsString,
+                PatternTypeId = PatternType.Rythm
+            };
+        }
+
 
         [NotMapped]
         public int Length

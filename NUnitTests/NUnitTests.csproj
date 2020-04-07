@@ -14,7 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DryWetMidi\Melanchall.DryWetMidi.csproj" />
-    <ProjectReference Include="..\Plagiator.Music\Plagiator.Music.csproj" />
+    <ProjectReference Include="..\Plagiator.Analysis\Plagiator.Analysis.csproj" />
+    <ProjectReference Include="..\Plagiator.Models\Plagiator.Models.csproj" />
     <ProjectReference Include="..\SQLDBAccess\SQLDBAccess.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
 ﻿using Plagiator.Models.Entities;
+using Plagiator.Models.enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -37,15 +38,15 @@ namespace Plagiator.Persistence
 
         // Time Signatures
 
-        public Task<TimeSignature> GetTimeSignature(TimeSignature ts);
+        public Task<TimeSignature> GetTimeSignature(TimeSignature timeSignature);
 
         // Patterns
-        //Task<Pattern> GetPatternByIdAsync(int patternId);
-        //Task<Pattern> GetPatternByStringAndTypeAsync(string patternString, PatternType patternType);
-        //Pattern AddPatternAsync(Pattern pattern);
-        //Task<Occurrence> GetOccurrenceByIdAsync(int ocId);
-        //Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(int songVersionId, int patternId);
-        //Task<Occurrence> AddOccurrence(Occurrence oc);
+        Task<Pattern> GetPatternByIdAsync(int patternId);
+        Task<Pattern> GetPatternByStringAndTypeAsync(string patternString, PatternType patternType);
+        Pattern AddPattern(Pattern pattern);
+        Task<Occurrence> GetOccurrenceByIdAsync(int occurrenceId);
+        Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(int songSimplificationId, int patternId);
+        Task<Occurrence> AddOccurrence(Occurrence occurrence);
 
     }
 }

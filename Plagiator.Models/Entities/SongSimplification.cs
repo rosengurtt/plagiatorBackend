@@ -21,18 +21,20 @@ namespace Plagiator.Models.Entities
         public long SimplificationVersion { get; set; }
         public List<Note> Notes { get; set; }
 
+        /// <summary>
+        /// Contains all the patterns of rythm, pitches and melodies in the song
+        /// simplification and all the occurrences of each
+        /// </summary>
         public List<Occurrence> Occurrences { get; set; }
 
 
-        public List<Note> NotesOfInstrument(int instr)
+        public IEnumerable<Note> NotesOfInstrument(int instr)
         {
-            var retObj = new List<Note>();
             foreach (var n in Notes)
             {
                 if (n.Instrument == instr)
-                    retObj.Add(n.Clone());
+                   yield return n.Clone();
             }
-            return retObj;
         }
     }
 }
