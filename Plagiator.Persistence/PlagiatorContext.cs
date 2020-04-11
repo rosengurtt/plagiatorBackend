@@ -26,6 +26,8 @@ namespace Plagiator.Persistence
         public DbSet<Pattern> Patterns { get; set; }
         public DbSet<Occurrence> Occurrences { get; set; }
 
+        public DbSet<Chord> Chords { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Style>().ToTable("Styles");
@@ -39,6 +41,7 @@ namespace Plagiator.Persistence
             modelBuilder.Entity<SongSimplification>().ToTable("SongSimplifications");
             modelBuilder.Entity<Pattern>().ToTable("Patterns");
             modelBuilder.Entity<Occurrence>().ToTable("Occurrences");
+            modelBuilder.Entity<Chord>().ToTable("Chords");
 
             modelBuilder.Entity<Style>()
                 .HasAlternateKey(c => c.Name).HasName("IX_StyleName");

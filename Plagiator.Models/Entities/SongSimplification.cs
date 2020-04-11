@@ -20,6 +20,7 @@ namespace Plagiator.Models.Entities
         /// </summary>
         public long SimplificationVersion { get; set; }
         public List<Note> Notes { get; set; }
+        public List<Chord> Chords { get; set; }
 
         /// <summary>
         /// Contains all the patterns of rythm, pitches and melodies in the song

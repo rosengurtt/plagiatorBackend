@@ -58,7 +58,7 @@ namespace Plagiator.Midi
                             ProcessNoteOn(noteOnEvent.NoteNumber, noteOnEvent.Velocity,
                                 currentNotes, notesObj, currentTick,
                                 instrumentOfChannel[noteOnEvent.Channel],
-                                IsPercussionEvent(eventito), chunkNo);
+                                IsPercussionEvent(eventito), (byte)chunkNo);
                         }
                         continue;
                     }
@@ -66,7 +66,7 @@ namespace Plagiator.Midi
                     {
                         NoteOffEvent noteOffEvent = eventito as NoteOffEvent;
                         ProcessNoteOff(noteOffEvent.NoteNumber, currentNotes, notesObj, currentTick,
-                            instrumentOfChannel[noteOffEvent.Channel], chunkNo);
+                            instrumentOfChannel[noteOffEvent.Channel], (byte)chunkNo);
                         continue;
                     }
                     if (eventito is PitchBendEvent)
@@ -108,9 +108,9 @@ namespace Plagiator.Midi
         }
 
 
-        private static void ProcessNoteOn(short pitch, short volume, List<Note> currentNotes,
-                List<Note> retObj, long currentTick, short instrument,
-                bool isPercussion, short voice)
+        private static void ProcessNoteOn(byte pitch, byte volume, List<Note> currentNotes,
+                List<Note> retObj, long currentTick, byte instrument,
+                bool isPercussion, byte voice)
         {
 
             if (volume > 0)
@@ -137,8 +137,8 @@ namespace Plagiator.Midi
                 }
             }
         }
-        private static void ProcessNoteOff(short pitch, List<Note> currentNotes,
-         List<Note> retObj, long currentTick, short intrument, short voice)
+        private static void ProcessNoteOff(byte pitch, List<Note> currentNotes,
+         List<Note> retObj, long currentTick, byte intrument, byte voice)
         {
             ProcessNoteOn(pitch, 0, currentNotes, retObj, currentTick, intrument, false, voice);
         }

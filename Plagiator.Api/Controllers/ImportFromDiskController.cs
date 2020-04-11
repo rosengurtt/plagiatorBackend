@@ -1,5 +1,4 @@
-﻿
-using Melanchall.DryWetMidi.Core;
+﻿using Melanchall.DryWetMidi.Core;
 using Microsoft.AspNetCore.Mvc;
 using Plagiator.Analysis.Patterns;
 using Plagiator.Api.ErrorHandling;
@@ -22,7 +21,7 @@ namespace Plagiator.Api.Controllers
     public class ImportFromDiskController : ControllerBase
     {
         private IRepository Repository;
-        public ImportFromDiskController(PlagiatorContext context, IRepository Repository)
+        public ImportFromDiskController(IRepository Repository)
         {
             this.Repository = Repository;
         }
@@ -62,7 +61,7 @@ namespace Plagiator.Api.Controllers
                             if (songita == null)
                             {
                                 var song = await ProcesameLaSong(songPath, band, style);
-                                if (song != null) await ProcesameLosPatterns(song);
+                                //if (song != null) await ProcesameLosPatterns(song);
                             }
                         }
                     }
