@@ -1,6 +1,7 @@
 ﻿using Plagiator.Models.enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Plagiator.Models.Entities
@@ -20,7 +21,10 @@ namespace Plagiator.Models.Entities
         /// </summary>
         public long SimplificationVersion { get; set; }
         public List<Note> Notes { get; set; }
+        
+        [NotMapped]
         public List<Chord> Chords { get; set; }
+        public List<ChordOccurrence> ChordOccurrences { get; set; }
 
         /// <summary>
         /// Contains all the patterns of rythm, pitches and melodies in the song

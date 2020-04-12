@@ -14,8 +14,6 @@ namespace Plagiator.Models.Entities
 
         public long SongSimplificationId { get; set; }
         public SongSimplification SongSimplification { get; set; }
-        public long? ChordId { get; set; }
-        public Chord Chord { get; set; }
         public byte Pitch { get; set; }
         public byte Volume { get; set; }
         public long StartSinceBeginningOfSongInTicks { get; set; }

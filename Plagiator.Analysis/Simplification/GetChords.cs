@@ -8,10 +8,17 @@ namespace Plagiator.Analysis
 {
     public static partial class SimplificationUtilities
     {
-        public static List<Chord> GetChordsOfSimplification(SongSimplification simpl)
+        /// <summary>
+        /// Looks for unique chords and all their occurrences in a song simplification
+        /// The key of the dictionary returned is the chord expressed as a sequence
+        /// of pitches separated by commas (like "40,46,54"). The pitches are sorted
+        /// </summary>
+        /// <param name="simpl"></param>
+        /// <returns></returns>
+        public static Dictionary<string, List<ChordOccurrence>> GetChordsOfSimplification(SongSimplification simpl)
         {
             var durationOfHalfBeatInTicks = 48;
-            var retObj = new List<Chord>();
+            var retObj = new  Dictionary<string, List<ChordOccurrence>>();
             // We create a dictionary where the keys are points it time
             // one for every half beat of the song and the values are the notes 
             // played in that half beat
@@ -55,20 +62,28 @@ namespace Plagiator.Analysis
                     {
                         var possibleChord = new List<Note>();
                         possibleChord.Add(n);
-                        possibleChords.Add(possibleChord);
+                        possibleChords.Add(possibleChord);                        
                     }
                 }
                 // We have now in possibleChords a list of groups of notes
-                // We select the one that has more notes
+                // We select the ones that have at least 2 notes
                 if (possibleChords.Count > 0)
                 {
-                    var maxNotesInAChord = possibleChords.Select(x => x.Count).Max();
-                    if (maxNotesInAChord == 1) continue;
-                    var theChord = possibleChords
-                        .Where(x => x.Count == maxNotesInAChord).FirstOrDefault();
-                    var newChord = new Chord(theChord);
-                    if (NotesGenerateHarmony(theChord) && !IsChordInList(retObj, newChord))
-                        retObj.Add(newChord);
+                    foreach(var possibleChord in possibleChords)
+                    {
+                        if (possibleChord.Count < 2 ||
+                            !NotesGenerateHarmony(possibleChord)) continue;
+                        var thisChord = new Chord(possibleChord);
+                        if (!retObj.ContainsKey(thisChord.PitchesAsString))
+                            retObj[thisChord.PitchesAsString] = new List<ChordOccurrence>();
+                        var chordOccurrence = new ChordOccurrence
+                        {
+                            StartTick = possibleChord.FirstOrDefault().StartSinceBeginningOfSongInTicks,
+                            EndTick = possibleChord.FirstOrDefault().EndSinceBeginningOfSongInTicks,
+                            SongSimplificationId = simpl.Id
+                        };
+                        retObj[thisChord.PitchesAsString].Add(chordOccurrence);
+                    }
                 }
             }
             return retObj;
@@ -94,34 +109,16 @@ namespace Plagiator.Analysis
                 return (quotient + 1) * (precision);
         }
 
-        private static bool AreNotesSimultaneous(Note n1, Note n2)
-        {
-            var start1 = n1.StartSinceBeginningOfSongInTicks;
-            var start2 = n2.StartSinceBeginningOfSongInTicks;
-            var end1 = n1.EndSinceBeginningOfSongInTicks;
-            var end2 = n2.EndSinceBeginningOfSongInTicks;
-            var minDuration = Math.Min(n1.DurationInTicks, n2.DurationInTicks);
-            if (start1 > end2 || start2 > end1) return false;
-            if (Math.Min(end1 - start2, end2 - start1) < minDuration / (double)2)
-                return false;
-            return true;
-        }
+     
         private static bool IsNoteSimultaneousWithGroup(List<Note> group, Note n)
         {
-            var groupMinStart = group
-                .Select(n => n.StartSinceBeginningOfSongInTicks).Min();
-            var groupMaxStart = group
-                .Select(n => n.StartSinceBeginningOfSongInTicks).Max();
-            var groupMinEnd = group
-                .Select(n => n.EndSinceBeginningOfSongInTicks).Min();
-            var groupMaxEnd = group
-                .Select(n => n.EndSinceBeginningOfSongInTicks).Max();
-            if (Math.Abs(groupMinStart-n.StartSinceBeginningOfSongInTicks)>24 ||
-                Math.Abs(groupMaxStart - n.StartSinceBeginningOfSongInTicks) > 24 ||
-                Math.Abs(groupMinEnd - n.EndSinceBeginningOfSongInTicks) > 24 ||
-                Math.Abs(groupMaxEnd - n.EndSinceBeginningOfSongInTicks) > 24)
-                return false;
-            return true;
+            var groupStart = group.FirstOrDefault().StartSinceBeginningOfSongInTicks;
+            var groupEnd = group.FirstOrDefault().EndSinceBeginningOfSongInTicks;
+             
+            if (groupStart==n.StartSinceBeginningOfSongInTicks &&
+                groupEnd==n.EndSinceBeginningOfSongInTicks)
+                return true;
+            return false;
         }
  
         /// <summary>
@@ -142,13 +139,6 @@ namespace Plagiator.Analysis
             return false;
         }
     
-        private static bool IsChordInList(List<Chord> list, Chord chord)
-        {
-            var matches = list
-                .Where(x => x.Notes.Count == chord.Notes.Count && x.StartTick==chord.StartTick).ToList();
-            if (matches.Count > 0) return true;
-            return false;
-
-        }
+     
     }
 }

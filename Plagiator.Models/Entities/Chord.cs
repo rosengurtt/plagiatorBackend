@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Plagiator.Models.Entities
 {
@@ -13,46 +14,79 @@ namespace Plagiator.Models.Entities
     public class Chord
     {
         public Chord() { }
+
+        public Chord(string pitchesAsString)
+        {
+            var re = new Regex(@"^[0-9]+(,[0-9]+)+$");
+            if (!re.IsMatch(pitchesAsString))
+                throw new Exception("Invalid string for a chord");
+            PitchesAsString = pitchesAsString;
+            var pitches = pitchesAsString.Split(",")
+                    .ToList().Select(p => byte.Parse(p)).ToList();
+            PitchLettersAsString = string
+                .Join(",", pitches.Select(n => GetLetterPitch(n)).OrderBy(x => x));
+        }
         public Chord(List<Note> notes)
         {
-            var latestStart = notes
-                .Select(n => n.StartSinceBeginningOfSongInTicks).Max();
-            var earlierEnd = notes
-                .Select(n => n.EndSinceBeginningOfSongInTicks).Min();
-            if (latestStart > earlierEnd)
-                throw new Exception("Notes not playing at the same time");
-            Notes = notes;
+            PitchesAsString = string
+                .Join(",", notes.OrderBy(n => n.Pitch).Select(m => m.Pitch));
+            PitchLettersAsString = string
+                .Join(",", notes.Select(n => GetLetterPitch(n.Pitch)).OrderBy(x => x));
         }
 
         public long Id { get; set; }
-        public List<Note> Notes { get; set; }
+        
+        /// <summary>
+        /// The pitches here are numbers from 0 to 127
+        /// </summary>
+        public string PitchesAsString { get; set; }
 
-        public long SongSimplificationId { get; set; }
+        /// <summary>
+        /// The pitches are expressed as the letters
+        /// A, Ab, B, Bb, C, D, Db, E, Eb, F, G, Gb
+        /// </summary>
+        public string PitchLettersAsString { get; set; }
 
-        public List<int> Pitches
+        public List<byte> Pitches
         {
             get
             {
-                var retObj = new List<int>();
-                foreach(var n in Notes)
-                {
-                    if (!retObj.Contains(n.Pitch)) retObj.Add(n.Pitch);
-                }
-                return retObj;
+               return PitchesAsString.Split(",")
+                    .ToList().Select(p => byte.Parse(p)).ToList();
             }
         }
-        public long StartTick
+
+        private static string GetLetterPitch(byte pitch)
         {
-            get
+            pitch = (byte) (pitch % 12);
+            switch (pitch)
             {
-                return Notes.Select(n => n.StartSinceBeginningOfSongInTicks).Min();
-            }
-        }
-        public long EndTick
-        {
-            get
-            {
-                return Notes.Select(n => n.EndSinceBeginningOfSongInTicks).Max();
+                case 0:
+                    return "C";
+                case 1:
+                    return "Db";
+                case 2:
+                    return "D";
+                case 3:
+                    return "Eb";
+                case 4:
+                    return "E";
+                case 5:
+                    return "F";
+                case 6:
+                    return "Gb";
+                case 7:
+                    return "G";
+                case 8:
+                    return "Ab";
+                case 9:
+                    return "A";
+                case 10:
+                    return "Bb";
+                case 11:
+                    return "B";
+                default:
+                    return "";
             }
         }
     }

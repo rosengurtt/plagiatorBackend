@@ -6,7 +6,7 @@ namespace Plagiator.Analysis
 {
     public  static partial class SimplificationUtilities
     {
-        // 1. Get chords, top melody, bass melody, percussion
+        // 1. Get chords,  melodies, percussion
 
 
 

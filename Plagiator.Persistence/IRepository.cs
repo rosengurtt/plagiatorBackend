@@ -52,5 +52,9 @@ namespace Plagiator.Persistence
         Task UpdateSongSimplification(SongSimplification simpl);
         Task<SongSimplification> GetSongSimplification(Song song, int version);
 
+        // Chords
+        Chord AddChord(Chord chord);
+        Task<Chord> GetChordByIdAsync(int chordId);
+        Task<Chord> GetChordByStringAsync(string pitchesAsString);
     }
 }

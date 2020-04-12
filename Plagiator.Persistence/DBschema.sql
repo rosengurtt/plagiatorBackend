@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS  Occurrences
 DROP TABLE IF EXISTS  Patterns
 DROP TABLE IF EXISTS  PatternTypes
 DROP TABLE IF EXISTS  PitchBendItems
+DROP TABLE IF EXISTS  ChordOccurrences
 DROP TABLE IF EXISTS  Chords
 DROP TABLE IF EXISTS  Notes
 DROP TABLE IF EXISTS  PatternTypes
@@ -191,18 +192,28 @@ GO
 ALTER TABLE SongStats CHECK CONSTRAINT FK_SongStats_TimeSignatures
 GO
 
-
-
 CREATE TABLE SongSimplifications(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	SimplificationVersion bigint not null,
 	SongId bigint not null
 ) 
 
-create table Chords(
+CREATE TABLE Chords(
     Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-	SongSimplificationId bigint not null
+    PitchesAsString varchar(100) not null,
+    PitchLettersAsString varchar(100) not null
 )
+ALTER TABLE Chords ADD CONSTRAINT UC_PitchesAsString UNIQUE (PitchesAsString)
+
+CREATE TABLE ChordOccurrences(
+    Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+    ChordId bigint not null,
+	SongSimplificationId bigint not null,
+    StartTick bigint not null,
+    EndTick bigint not null
+)
+ALTER TABLE ChordOccurrences  WITH CHECK ADD  CONSTRAINT FK_Chord_ChordOccurrences FOREIGN KEY(ChordId)
+REFERENCES Chords (Id)
 
 CREATE TABLE Notes(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
@@ -218,8 +229,7 @@ CREATE TABLE Notes(
 )
 ALTER TABLE Notes  WITH CHECK ADD  CONSTRAINT FK_Notes_SongSimplifications FOREIGN KEY(SongSimplificationId)
 REFERENCES SongSimplifications (Id)
-ALTER TABLE Notes  WITH CHECK ADD  CONSTRAINT FK_Notes_Chords FOREIGN KEY(ChordId)
-REFERENCES Chords (Id)
+
 
 CREATE TABLE Bars(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
