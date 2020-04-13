@@ -56,5 +56,8 @@ namespace Plagiator.Persistence
         Chord AddChord(Chord chord);
         Task<Chord> GetChordByIdAsync(int chordId);
         Task<Chord> GetChordByStringAsync(string pitchesAsString);
+
+        // Melodies
+        Task<Melody> SaveMelodyAsync(Melody melody);
     }
 }

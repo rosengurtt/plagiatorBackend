@@ -69,7 +69,7 @@ namespace Plagiator.Analysis
                 // We select the ones that have at least 2 notes
                 if (possibleChords.Count > 0)
                 {
-                    foreach(var possibleChord in possibleChords)
+                    foreach (var possibleChord in possibleChords)
                     {
                         if (possibleChord.Count < 2 ||
                             !NotesGenerateHarmony(possibleChord)) continue;
@@ -82,11 +82,18 @@ namespace Plagiator.Analysis
                             EndTick = possibleChord.FirstOrDefault().EndSinceBeginningOfSongInTicks,
                             SongSimplificationId = simpl.Id
                         };
-                        retObj[thisChord.PitchesAsString].Add(chordOccurrence);
+                        if (!IsOccurrenceAlreadyInList(retObj[thisChord.PitchesAsString], chordOccurrence))
+                            retObj[thisChord.PitchesAsString].Add(chordOccurrence);
                     }
                 }
             }
             return retObj;
+        }
+        private static bool IsOccurrenceAlreadyInList(List<ChordOccurrence> list, ChordOccurrence co)
+        {
+            return list
+                .Where(x => x.StartTick == co.StartTick && x.EndTick == co.EndTick)
+                .Count() > 0;
         }
 
         /// <summary>

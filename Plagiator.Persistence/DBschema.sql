@@ -200,8 +200,9 @@ CREATE TABLE SongSimplifications(
 
 CREATE TABLE Chords(
     Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
-    PitchesAsString varchar(100) not null,
-    PitchLettersAsString varchar(100) not null
+    PitchesAsString varchar(200) not null,
+    PitchLettersAsString varchar(100) not null,
+    IntervalsAsString varchar(100) not null
 )
 ALTER TABLE Chords ADD CONSTRAINT UC_PitchesAsString UNIQUE (PitchesAsString)
 

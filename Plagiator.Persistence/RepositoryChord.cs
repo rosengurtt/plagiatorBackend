@@ -14,8 +14,8 @@ namespace Plagiator.Persistence
         public Chord AddChord(Chord chord)
         {
             return Context.Chords
-                  .FromSqlRaw(@$"insert into Chords(PitchesAsString, PitchLettersAsString) 
-                                values ('{chord.PitchesAsString}', '{chord.PitchLettersAsString}') 
+                  .FromSqlRaw(@$"insert into Chords(PitchesAsString, PitchLettersAsString, IntervalsAsString) 
+                                values ('{chord.PitchesAsString}', '{chord.PitchLettersAsString}', '{chord.IntervalsAsString}') 
                         SELECT * FROM Chords WHERE Id = SCOPE_IDENTITY();")
                   .ToList().FirstOrDefault();
         }

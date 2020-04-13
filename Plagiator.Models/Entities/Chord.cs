@@ -13,9 +13,21 @@ namespace Plagiator.Models.Entities
     /// </summary>
     public class Chord
     {
+        #region constructors
         public Chord() { }
 
         public Chord(string pitchesAsString)
+        {
+            ConstructorAux(pitchesAsString);
+        }
+        public Chord(List<Note> notes)
+        {
+            var pitchesAsString = string
+                .Join(",", notes.OrderBy(n => n.Pitch).Select(m => m.Pitch));
+            ConstructorAux(pitchesAsString);
+        }
+
+        private void ConstructorAux(string pitchesAsString)
         {
             var re = new Regex(@"^[0-9]+(,[0-9]+)+$");
             if (!re.IsMatch(pitchesAsString))
@@ -25,15 +37,19 @@ namespace Plagiator.Models.Entities
                     .ToList().Select(p => byte.Parse(p)).ToList();
             PitchLettersAsString = string
                 .Join(",", pitches.Select(n => GetLetterPitch(n)).OrderBy(x => x));
+            var intervals = new List<byte>();
+            for (var i = 0; i < Pitches.Count - 1; i++)
+            {
+                for (var j = i+1; j < Pitches.Count; j++)
+                {
+                    var interval = (byte)((Pitches[j] - Pitches[i]) % 12);
+                    if (!intervals.Contains(interval)) intervals.Add(interval);
+                }
+            }
+            IntervalsAsString = string
+                .Join(",", intervals.OrderBy(i => i));
         }
-        public Chord(List<Note> notes)
-        {
-            PitchesAsString = string
-                .Join(",", notes.OrderBy(n => n.Pitch).Select(m => m.Pitch));
-            PitchLettersAsString = string
-                .Join(",", notes.Select(n => GetLetterPitch(n.Pitch)).OrderBy(x => x));
-        }
-
+        #endregion
         public long Id { get; set; }
         
         /// <summary>
@@ -51,8 +67,20 @@ namespace Plagiator.Models.Entities
         {
             get
             {
-               return PitchesAsString.Split(",")
-                    .ToList().Select(p => byte.Parse(p)).ToList();
+                return PitchesAsString.Split(",")
+                     .ToList().Select(p => byte.Parse(p))
+                     .ToList().OrderBy(q => q).ToList();
+            }
+        }
+        public string IntervalsAsString { get; set; }
+
+        public List<byte> Intervals
+        {
+            get
+            {
+                return IntervalsAsString.Split(",")
+                  .ToList().Select(p => byte.Parse(p))
+                  .ToList().OrderBy(q => q).ToList();
             }
         }
 
