@@ -32,6 +32,11 @@ namespace Plagiator.Models.Entities
             Notes = RemoveBassNotes(notes).ToList();
         }
 
+        /// <summary>
+        /// Empty constructor of EF
+        /// </summary>
+        public Melody() { }
+
         public List<int> Pitches
         {
             get

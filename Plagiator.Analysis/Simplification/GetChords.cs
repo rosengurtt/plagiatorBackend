@@ -89,6 +89,9 @@ namespace Plagiator.Analysis
             }
             return retObj;
         }
+
+        
+
         private static bool IsOccurrenceAlreadyInList(List<ChordOccurrence> list, ChordOccurrence co)
         {
             return list

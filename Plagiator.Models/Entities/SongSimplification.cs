@@ -21,7 +21,9 @@ namespace Plagiator.Models.Entities
         /// </summary>
         public long SimplificationVersion { get; set; }
         public List<Note> Notes { get; set; }
-        
+
+        public long NumberOfVoices { get; set; }
+
         [NotMapped]
         public List<Chord> Chords { get; set; }
         public List<ChordOccurrence> ChordOccurrences { get; set; }

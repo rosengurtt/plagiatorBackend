@@ -88,7 +88,12 @@ namespace Plagiator.Midi
                 }
             }
 
-            var retObj = new SongSimplification() { Notes = notesObj, SimplificationVersion = 0 };
+            var retObj = new SongSimplification()
+            {
+                Notes = notesObj,
+                SimplificationVersion = 0,
+                NumberOfVoices = chunkNo
+            };
             return retObj;
         }
 

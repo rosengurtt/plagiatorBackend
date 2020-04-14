@@ -60,6 +60,12 @@ namespace Plagiator.Api.Controllers
                         }
                     }
                     await Repository.UpdateSongSimplification(simpl);
+
+                    var melodies = SimplificationUtilities.GetMelodiesOfSimplification(simpl);
+                    foreach(var melody in melodies)
+                    {
+                        await Repository.AddMelodyAsync(melody);
+                    }
                 }
             }
 

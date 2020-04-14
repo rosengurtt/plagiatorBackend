@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS  Patterns
 DROP TABLE IF EXISTS  PatternTypes
 DROP TABLE IF EXISTS  PitchBendItems
 DROP TABLE IF EXISTS  ChordOccurrences
+DROP TABLE IF EXISTS  MelodyNotes
+DROP TABLE IF EXISTS  Melodies
 DROP TABLE IF EXISTS  Chords
 DROP TABLE IF EXISTS  Notes
 DROP TABLE IF EXISTS  PatternTypes
@@ -195,7 +197,8 @@ GO
 CREATE TABLE SongSimplifications(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	SimplificationVersion bigint not null,
-	SongId bigint not null
+	SongId bigint not null,
+    NumberOfVoices bigint not null
 ) 
 
 CREATE TABLE Chords(
@@ -205,6 +208,16 @@ CREATE TABLE Chords(
     IntervalsAsString varchar(100) not null
 )
 ALTER TABLE Chords ADD CONSTRAINT UC_PitchesAsString UNIQUE (PitchesAsString)
+
+CREATE TABLE Melodies(
+    Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+	SongSimplificationId bigint not null,
+    Instrument tinyInt not null,
+    Voice tinyInt not null
+)
+ALTER TABLE Melodies  WITH CHECK ADD  CONSTRAINT FK_Melodies_SongSimplification FOREIGN KEY(SongSimplificationId)
+REFERENCES SongSimplifications (Id)
+
 
 CREATE TABLE ChordOccurrences(
     Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
@@ -231,6 +244,15 @@ CREATE TABLE Notes(
 ALTER TABLE Notes  WITH CHECK ADD  CONSTRAINT FK_Notes_SongSimplifications FOREIGN KEY(SongSimplificationId)
 REFERENCES SongSimplifications (Id)
 
+CREATE TABLE MelodyNotes(
+    Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+    MelodyId bigint not null,
+    NoteId bigint not null
+)
+ALTER TABLE MelodyNotes  WITH CHECK ADD  CONSTRAINT FK_MelodyNotes_Melodies FOREIGN KEY(MelodyId)
+REFERENCES Melodies (Id)
+ALTER TABLE MelodyNotes  WITH CHECK ADD  CONSTRAINT FK_MelodyNotes_Notes FOREIGN KEY(NoteId)
+REFERENCES Notes (Id)
 
 CREATE TABLE Bars(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,

@@ -8,7 +8,7 @@ namespace Plagiator.Persistence
 {
     partial class Repository
     {
-        public async Task<Melody> SaveMelodyAsync(Melody melody)
+        public async Task<Melody> AddMelodyAsync(Melody melody)
         {
             Context.Melodies.Add(melody);
             await Context.SaveChangesAsync();

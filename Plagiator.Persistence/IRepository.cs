@@ -58,6 +58,6 @@ namespace Plagiator.Persistence
         Task<Chord> GetChordByStringAsync(string pitchesAsString);
 
         // Melodies
-        Task<Melody> SaveMelodyAsync(Melody melody);
+        Task<Melody> AddMelodyAsync(Melody melody);
     }
 }
