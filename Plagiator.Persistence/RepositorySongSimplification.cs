@@ -13,7 +13,7 @@ namespace Plagiator.Persistence
         {
             return await Context.SongSimplifications
                 .Where(s => s.SongId == song.Id && s.SimplificationVersion == version)
-                .Include(x=>x.Notes)
+                .Include("Notes.PitchBending")
                 .FirstOrDefaultAsync();
         }
 

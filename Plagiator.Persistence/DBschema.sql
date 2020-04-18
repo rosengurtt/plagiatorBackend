@@ -272,7 +272,7 @@ REFERENCES Songs (Id)
 CREATE TABLE PitchBendItems(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	TicksSinceBeginningOfSong bigint NULL,
-	Pitch bigint null,
+	Pitch int null,
 	NoteId bigint not null
 ) 
 ALTER TABLE PitchBendItems  WITH CHECK ADD  CONSTRAINT FK_PitchBendItems_Notes FOREIGN KEY(NoteId)
