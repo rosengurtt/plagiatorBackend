@@ -25,12 +25,27 @@ namespace Plagiator.Analysis
                     retObj.Add(melody);
                 }
             }
+            // If we couldn't find any voice that is a melody, then the melody is
+            // given by the highest notes of the combined notes
+            if (retObj.Count == 0)
+            {
+                var melody = new Melody(GetNonPercusionNotes(simpl.Notes));
+                melody.SongSimplificationId = simpl.Id;
+                melody.Voice = melody.Notes[0].Voice;
+                melody.Instrument = melody.Notes[0].Instrument;
+                retObj.Add(melody);
+            }
             return retObj;
         }
 
         private static List<Note> GetNonPercusionNotesOfVoice(List<Note> notes, byte voice)
         {
             return notes.Where(n => n.Voice == voice && n.IsPercussion == false)
+                .OrderBy(m => m.StartSinceBeginningOfSongInTicks).ToList();
+        }
+        private static List<Note> GetNonPercusionNotes(List<Note> notes)
+        {
+            return notes.Where(n => n.IsPercussion == false)
                 .OrderBy(m => m.StartSinceBeginningOfSongInTicks).ToList();
         }
 

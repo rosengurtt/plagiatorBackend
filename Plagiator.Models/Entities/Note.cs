@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace Plagiator.Models.Entities
 {
@@ -42,11 +42,6 @@ namespace Plagiator.Models.Entities
 
         public Note Clone()
         {
-            var bendItems = new List<PitchBendItem>();
-            foreach (var b in PitchBending)
-            {
-                bendItems.Add(b.Clone());
-            }
             return new Note
             {
                 EndSinceBeginningOfSongInTicks = this.EndSinceBeginningOfSongInTicks,
@@ -54,7 +49,7 @@ namespace Plagiator.Models.Entities
                 Pitch = this.Pitch,
                 Volume = this.Volume,
                 Instrument = this.Instrument,
-                PitchBending = bendItems,
+                PitchBending = PitchBending.Select(s => s.Clone()).ToList(),
                 IsPercussion = this.IsPercussion
             };
         }

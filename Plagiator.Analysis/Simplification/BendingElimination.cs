@@ -14,11 +14,12 @@ namespace Plagiator.Analysis
     {
         public static List<Note> RemoveBendings(List<Note> notes)
         {
+            int tolerance = 500;
             var addedNotes = new List<Note>();
             // When the pitch bend value is 8192*1.5 the note has raised 1 semitone,
             // when it is 16384 it has raised 2 semitones
-            // We give it a tolerance of 400, so we create a new note when it reaches
-            // 8192*1.5 - 400 or 16384 - 400
+            // We give it a tolerance of 500, so we create a new note when it reaches
+            // 8192*1.5 - 500 or 16384 - 500
             foreach (var n in notes)
             {
                 var noteWithoutBendings = new Note
@@ -37,12 +38,13 @@ namespace Plagiator.Analysis
                     var currentLevel = 8192;
                     var startTick = n.StartSinceBeginningOfSongInTicks;
                     var keepLooping = true;
+                    var isFirstLoop = true;
                     while (keepLooping)
                     {
                         // We find the next event where the pitch crosses or reach one of the values
-                        // 0, 4096, 8192, 12288, 16384 (with a tolerance of 400)
+                        // 0, 4096, 8192, 12288, 16384 (with a tolerance of 500)
                         var nextPitchChange = sortedEvents
-                                .Where(x => Math.Abs(x.Pitch - currentLevel) > (4096 - 400) &&
+                                .Where(x => Math.Abs(x.Pitch - currentLevel) > (4096 - tolerance) &&
                                     x.TicksSinceBeginningOfSong > startTick).FirstOrDefault();
 
                         // If we don't find such an event, we are done
@@ -56,7 +58,7 @@ namespace Plagiator.Analysis
 
                         // We find the next event that crosses a boundary
                         var followingPitchChange = sortedEvents
-                                .Where(x => Math.Abs(x.Pitch - currentLevel) > (4096 - 400) &&
+                                .Where(x => Math.Abs(x.Pitch - currentLevel) > (4096 - tolerance) &&
                                     x.TicksSinceBeginningOfSong > nextPitchChange.TicksSinceBeginningOfSong).FirstOrDefault();
                         // We calculate the endint time of nextPitchChange as the start of the
                         // next crossing boundary event or the end of the note
@@ -78,6 +80,13 @@ namespace Plagiator.Analysis
                         // We set the value of startTick  for the next iteration
                         startTick = nextPitchChange.TicksSinceBeginningOfSong;
                         addedNotes.Add(addedNote);
+                        // If we have added a note immediately after the original note, update
+                        // the duration of the original note to finish where the new one starts
+                        if (isFirstLoop)
+                        {
+                            n.EndSinceBeginningOfSongInTicks = addedNote.StartSinceBeginningOfSongInTicks;
+                            isFirstLoop = false;
+                        }
                     }
                 }
             }
@@ -89,10 +98,11 @@ namespace Plagiator.Analysis
         }
         private static int CalculateCurrentLevel(int number)
         {
-            if (number > 8192 + 4096 - 400 && number < 16384 - 400)
+            var tolerance = 500;
+            if (number > 8192 + 4096 - tolerance && number < 16384 - tolerance)
                 return 8192 + 4096;
-            if (number > 16384 - 400) return 16384;
-            if (number < 8192 + -4096 + 400 && number > 400)
+            if (number > 16384 - tolerance) return 16384;
+            if (number < 8192 + -4096 + tolerance && number > tolerance)
                 return 4096;
             else return 0;
         }

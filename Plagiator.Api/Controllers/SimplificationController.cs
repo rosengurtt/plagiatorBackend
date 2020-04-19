@@ -33,46 +33,20 @@ namespace Plagiator.Api.Controllers
             while (true)
             {
                 currentPage++;
-                var songs = await Repository.GetSongs(currentPage, 3, null, 12);
+                var songs = await Repository.GetSongs(currentPage, 3, null, 24);
                 if (songs == null) break;
                 foreach (var song in songs)
                 {
                     var simpl = await Repository.GetSongSimplification(song, 0);
-                    //var chordsOccur = SimplificationUtilities.GetChordsOfSimplification(simpl);
-                    //if (chordsOccur.Keys.Count > 0)
-                    //{
-                    //    simpl.Chords = new List<Chord>();
-                    //    simpl.ChordOccurrences = new List<ChordOccurrence>();
-                    //}
-                    //foreach (var chordAsString in chordsOccur.Keys)
-                    //{
-                    //    var chordito = await Repository.GetChordByStringAsync(chordAsString);
-                    //    if (chordito == null)
-                    //    {
-                    //        chordito = new Chord(chordAsString);
-                    //        chordito = Repository.AddChord(chordito);
-                    //    }
-                    //    simpl.Chords.Add(chordito);
-                    //    foreach (var oc in chordsOccur[chordAsString])
-                    //    {
-                    //        oc.ChordId = chordito.Id;
-                    //        simpl.ChordOccurrences.Add(oc);
-                    //    }
-                    //}
-                    //await Repository.UpdateSongSimplification(simpl);
 
-                    //var melodies = SimplificationUtilities.GetMelodiesOfSimplification(simpl);
-                    //foreach(var melody in melodies)
-                    //{
-                    //    await Repository.AddMelodyAsync(melody);
-                    //}
-                    var notesBefore = simpl.Notes.Count;
-                    SimplificationUtilities.RemoveBendings(simpl.Notes);
-                    var notesAfter = simpl.Notes.Count;
-                    if (notesAfter > notesBefore)
+                    var newSimpl = new SongSimplification()
                     {
-                        await Repository.UpdateSongSimplification(simpl);
-                    }
+                        Notes = simpl.Notes.Select(n => n.Clone()).ToList(),
+                        SimplificationVersion = simpl.SimplificationVersion + 1,
+                        SongId = simpl.SongId
+                    };
+                    SimplificationUtilities.RemoveBendings(newSimpl.Notes);
+                    await Repository.AddSongSimplification(newSimpl);
                 }
             }
 

@@ -49,6 +49,7 @@ namespace Plagiator.Persistence
         Task<Occurrence> AddOccurrence(Occurrence occurrence);
 
         // SongSimplifications
+        Task<SongSimplification> AddSongSimplification(SongSimplification simpl);
         Task UpdateSongSimplification(SongSimplification simpl);
         Task<SongSimplification> GetSongSimplification(Song song, int version);
 

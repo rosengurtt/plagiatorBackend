@@ -23,5 +23,12 @@ namespace Plagiator.Persistence
             await Context.SaveChangesAsync();
         }
 
+        public async Task<SongSimplification> AddSongSimplification(SongSimplification simpl)
+        {
+            Context.SongSimplifications.Add(simpl);
+            await Context.SaveChangesAsync();
+            return simpl;
+        }
+
     }
 }

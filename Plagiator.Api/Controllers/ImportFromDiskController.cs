@@ -1,5 +1,6 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Microsoft.AspNetCore.Mvc;
+using Plagiator.Analysis;
 using Plagiator.Analysis.Patterns;
 using Plagiator.Api.ErrorHandling;
 using Plagiator.Api.Helpers;
@@ -125,13 +126,37 @@ namespace Plagiator.Api.Controllers
                 song.Bars = MidiUtilities.GetBarsOfSong(midiBase64encoded, song.SongSimplifications[0]);
                 song.SongSimplifications[0].Notes = MidiUtilities.QuantizeNotes(song.SongSimplifications[0], song.Bars)
                     .ToList();
+                var chordsOccur = SimplificationUtilities.GetChordsOfSimplification(song.SongSimplifications[0]);
+                if (chordsOccur.Keys.Count > 0)
+                {
+                    song.SongSimplifications[0].Chords = new List<Chord>();
+                    song.SongSimplifications[0].ChordOccurrences = new List<ChordOccurrence>();
+                }
+                foreach (var chordAsString in chordsOccur.Keys)
+                {
+                    var chordito = await Repository.GetChordByStringAsync(chordAsString);
+                    if (chordito == null)
+                    {
+                        chordito = new Chord(chordAsString);
+                        chordito = Repository.AddChord(chordito);
+                    }
+                    song.SongSimplifications[0].Chords.Add(chordito);
+                    foreach (var oc in chordsOccur[chordAsString])
+                    {
+                        oc.ChordId = chordito.Id;
+                        song.SongSimplifications[0].ChordOccurrences.Add(oc);
+                    }
+                }
                 song.TempoChanges = MidiUtilities.GetTempoChanges(midiBase64encoded);
                 song.SongStats.NumberBars = song.Bars.Count();
                 song = await Repository.AddSong(song);
+                var melodies = SimplificationUtilities.GetMelodiesOfSimplification(song.SongSimplifications[0]);
+                foreach (var melody in melodies)
+                {
+                    await Repository.AddMelodyAsync(melody);
+                }
 
                 return song;
-
-
             }
             catch (Exception sorete)
             {
