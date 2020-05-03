@@ -39,7 +39,7 @@ namespace Plagiator.Api.Controllers
             song.SongSimplifications[0] = await Repository.GetSongSimplification(songId, 0);
 
             var occurrences = ProcesameLosPatterns(song);
-            return Ok(new ApiOKResponse(occurrences));
+            return Ok("Todo bien papi");
         }
         private async Task<Song> ProcesameLaSong(long SongId)
         {
@@ -86,8 +86,7 @@ namespace Plagiator.Api.Controllers
 
         private async Task<List<Occurrence>> ProcesameLosPatterns(Song song)
         {
-            var occurs =  Repository.GetPatternOccurrencesOfSongSimplification(song.SongSimplifications[0].Id);
-            if (occurs == null || occurs.Count == 0) {
+            if (!Repository.AreOccurrencesForSongSimplificationAlreadyProcessed(song.SongSimplifications[0].Id)) {
                 var allOccurrences = PatternUtilities.FindPatternsOfTypeInSong(song, 0, PatternType.Pitch).Values
                 .Concat(PatternUtilities.FindPatternsOfTypeInSong(song, 0, PatternType.Rythm).Values)
                 .Concat(PatternUtilities.FindPatternsOfTypeInSong(song, 0, PatternType.Melody).Values)
@@ -99,7 +98,7 @@ namespace Plagiator.Api.Controllers
                 {
                     try
                     {
-                        var patito = await Repository.GetPatternByStringAndTypeAsync(pat.AsString, pat.PatternTypeId);
+                        var patito =  Repository.GetPatternByStringAndType(pat.AsString, pat.PatternTypeId);
 
                         if (patito == null)
                         {
@@ -110,15 +109,14 @@ namespace Plagiator.Api.Controllers
                             oc.Pattern = patito;
                             oc.PatternId = patito.Id;
                             oc.SongSimplificationId = song.SongSimplifications[0].Id;
+                            Repository.AddOccurrence(oc);
                         }
                     }
-                    catch(Exception e)
+                    catch(Exception esacamela)
                     {
 
                     }
                 }
-                song.SongSimplifications[0].Occurrences = allOccurrences;
-                await Repository.UpdateSong(song);
             }
             return song.SongSimplifications[0].Occurrences;
         }

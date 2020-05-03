@@ -44,6 +44,7 @@ namespace Plagiator.Models.Entities
         {
             return new Note
             {
+                Id=this.Id,
                 EndSinceBeginningOfSongInTicks = this.EndSinceBeginningOfSongInTicks,
                 StartSinceBeginningOfSongInTicks = this.StartSinceBeginningOfSongInTicks,
                 Pitch = this.Pitch,

@@ -46,8 +46,9 @@ namespace Plagiator.Persistence
         Pattern AddPattern(Pattern pattern);
         Task<Occurrence> GetOccurrenceByIdAsync(long occurrenceId);
         Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(long songSimplificationId, long patternId);
-        Task<Occurrence> AddOccurrence(Occurrence occurrence);
+        Occurrence AddOccurrence(Occurrence oc);
         Task<List<Occurrence>> GetPatternOccurrencesOfSongSimplification(long songSimplificationId);
+        bool AreOccurrencesForSongSimplificationAlreadyProcessed(long songSimplificationId);
 
         // SongSimplifications
         Task<SongSimplification> AddSongSimplification(SongSimplification simpl);

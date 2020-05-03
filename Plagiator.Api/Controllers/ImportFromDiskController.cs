@@ -148,7 +148,7 @@ namespace Plagiator.Api.Controllers
             foreach (var oc in allOccurrences)
             {
                 var pattern = oc.Pattern;
-                var patito = await Repository.GetPatternByStringAndTypeAsync(pattern.AsString, pattern.PatternTypeId);
+                var patito =  Repository.GetPatternByStringAndType(pattern.AsString, pattern.PatternTypeId);
                 if (patito == null)
                 {
                     patito = Repository.AddPattern(pattern);

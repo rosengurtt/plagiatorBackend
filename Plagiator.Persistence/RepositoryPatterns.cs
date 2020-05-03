@@ -29,74 +29,118 @@ namespace Plagiator.Persistence
         /// <returns></returns>
         public Pattern GetPatternByStringAndType(string patternString, PatternType patternType)
         {
-            DataSet ds = new DataSet();
-            var sqlCnn = new SqlConnection(ConnectionString);
-            try
+            using (var sqlCnn = new SqlConnection(ConnectionString))
             {
                 sqlCnn.Open();
-                var sqlCmd = new SqlCommand("Select * from Patterns where AsString=@AsString and PatternTypeId=@TypeId", sqlCnn);
-                var adapter = new SqlDataAdapter() { SelectCommand = sqlCmd };
-                var paramPattern = new SqlParameter()
+                using (var sqlCmd = new SqlCommand(@"Select Id
+                                                    from Patterns 
+                                                    where AsString = @AsString and 
+                                                    PatternTypeId = @TypeId", sqlCnn))
                 {
-                    ParameterName = "@AsString",
-                    DbType = DbType.String,
-                    Value = patternString
-                };
-                var paramType = new SqlParameter()
-                {
-                    ParameterName = "@TypeId",
-                    DbType = DbType.Int32,
-                    Value = (int)patternType
-                };
-                adapter.Fill(ds);
-                if (ds!=null && ds.Tables!=null && ds.Tables.Count > 0)
-                {
-                    if (ds.Tables[0].Rows.Count == 0) return null;
-                    else
+                    using (var adapter = new SqlDataAdapter() { SelectCommand = sqlCmd })
                     {
-                        var pat = new Pattern()
+                        var paramPattern = new SqlParameter()
                         {
-                            AsString = patternString,
-                            PatternTypeId = patternType,
-                            Id = (int)ds.Tables[0].Rows[0].ItemArray[0]
+                            ParameterName = "@AsString",
+                            DbType = DbType.String,
+                            Value = patternString
                         };
+                        sqlCmd.Parameters.Add(paramPattern);
+                        var paramType = new SqlParameter()
+                        {
+                            ParameterName = "@TypeId",
+                            DbType = DbType.Int32,
+                            Value = (int)patternType
+                        };
+                        sqlCmd.Parameters.Add(paramType);
+                        DataSet ds = new DataSet();
+                        adapter.Fill(ds);
+                        if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
+                        {
+                            if (ds.Tables[0].Rows.Count == 0) return null;
+                            else
+                            {
+                                var pat = new Pattern()
+                                {
+                                    AsString = patternString,
+                                    PatternTypeId = patternType,
+                                    Id = (long)ds.Tables[0].Rows[0].ItemArray[0]
+                                };
+                                return pat;
+                            }
+                        }
                     }
                 }
-                adapter.Dispose();
-                sqlCmd.Dispose();
-                sqlCnn.Close();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "An exception was raised when trying to get a pattern using ado.net");
             }
             return null;
         }
         public Pattern AddPattern(Pattern pattern)
         {
-            return Context.Patterns
-                  .FromSqlRaw($"insert into Patterns(AsString, PatternTypeId) values ('{pattern.AsString}', {(int)pattern.PatternTypeId}) SELECT * FROM Patterns WHERE id = SCOPE_IDENTITY();")
-                  .ToList().FirstOrDefault();
+            var sqlCnn = new SqlConnection(ConnectionString);
+            sqlCnn.Open();
+            using (var sqlCmd = new SqlCommand(@"insert into Patterns(AsString, PatternTypeId)
+                                              values (@AsString, @PatternTypeId);
+                                              SELECT SCOPE_IDENTITY();", sqlCnn))
+            {
+                var AsString = new SqlParameter()
+                {
+                    ParameterName = "@AsString",
+                    DbType = DbType.String,
+                    Value = pattern.AsString
+                };
+                sqlCmd.Parameters.Add(AsString);
+                var paramPatternTypeId = new SqlParameter()
+                {
+                    ParameterName = "@PatternTypeId",
+                    DbType = DbType.Int32,
+                    Value = pattern.PatternTypeId
+                };
+                sqlCmd.Parameters.Add(paramPatternTypeId);
+                pattern.Id = Convert.ToInt64(sqlCmd.ExecuteScalar());
+            }
+            sqlCnn.Close();
+            return pattern;
         }
 
-        
+
         public async Task<Occurrence> GetOccurrenceByIdAsync(long ocId)
         {
             return await Context.Occurrences.FindAsync(ocId);
         }
 
+        public bool AreOccurrencesForSongSimplificationAlreadyProcessed(long songSimplificationId)
+        {
+            using (var sqlCnn = new SqlConnection(ConnectionString))
+            {
+                sqlCnn.Open();
+                using (var sqlCmd = new SqlCommand(@"Select count(*) from Occurrences
+                                              where SongSimplificationId=@id", sqlCnn))
+                {
+                    var adapter = new SqlDataAdapter() { SelectCommand = sqlCmd };
+                    var paramId = new SqlParameter()
+                    {
+                        ParameterName = "@id",
+                        DbType = DbType.Int64,
+                        Value = songSimplificationId
+                    };
+                    sqlCmd.Parameters.Add(paramId);
+                    var count = Convert.ToInt32(sqlCmd.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
         public async Task<List<Occurrence>> GetPatternOccurrencesOfSongSimplification(long songSimplificationId)
         {
             return await Context.Occurrences
                 .Where(x => x.SongSimplificationId == songSimplificationId)
-                .Include(y=>y.Pattern).ToListAsync();
+                .Include(y => y.Pattern).ToListAsync();
         }
 
         public async Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(
             long SongSimplificationId, long patternId)
         {
 
-            var occurs =  await Context.Occurrences.Join(
+            var occurs = await Context.Occurrences.Join(
                 Context.SongSimplifications,
                 occurrence => occurrence.SongSimplificationId,
                 songVersion => songVersion.Id,
@@ -109,10 +153,10 @@ namespace Plagiator.Persistence
                 }
                 )
                 .Where(a => a.SongSimplificationId == SongSimplificationId & a.PatternId == patternId).ToListAsync();
-            foreach(var oc in occurs)
+            foreach (var oc in occurs)
             {
                 oc.Notes = await Context.Notes.Join(
-                    Context.OccurrenceNotes.Where(occur=>occur.OccurrenceId==oc.Id),
+                    Context.OccurrenceNotes.Where(occur => occur.OccurrenceId == oc.Id),
                     note => note.Id,
                     occurrenceNote => occurrenceNote.NoteId,
                     (note, occurrenceNote) => note).ToListAsync();
@@ -120,20 +164,57 @@ namespace Plagiator.Persistence
             return occurs;
         }
 
-        public async Task<Occurrence> AddOccurrence(Occurrence oc)
+        public Occurrence AddOccurrence(Occurrence oc)
         {
-            Context.Occurrences.Add(oc);
-            foreach (var note in oc.Notes)
+            using (var sqlCnn = new SqlConnection(ConnectionString))
             {
-                Context.OccurrenceNotes.Add(new OccurrenceNote()
-                {
-                    OccurrenceId = oc.Id,
-                    NoteId = note.Id
-                });
-            }
-            await Context.SaveChangesAsync();
-            return oc;
 
+                sqlCnn.Open();
+                using (var sqlCmd1 = new SqlCommand(@"insert into Occurrences(SongSimplificationId,PatternId)
+                                              values (@SongSimplificationId, @PatternId);
+                                              SELECT SCOPE_IDENTITY();", sqlCnn))
+                {
+                    var paramSongSimplificationId = new SqlParameter()
+                    {
+                        ParameterName = "@SongSimplificationId",
+                        DbType = DbType.Int64,
+                        Value = oc.SongSimplificationId
+                    };
+                    sqlCmd1.Parameters.Add(paramSongSimplificationId);
+                    var paramPatternId = new SqlParameter()
+                    {
+                        ParameterName = "@PatternId",
+                        DbType = DbType.Int64,
+                        Value = oc.Pattern.Id
+                    };
+                    sqlCmd1.Parameters.Add(paramPatternId);
+                    oc.Id = Convert.ToInt64(sqlCmd1.ExecuteScalar());
+                }
+
+                foreach (var note in oc.Notes)
+                {
+                    using (var sqlCmd2 = new SqlCommand(@"insert into OccurrenceNotes(OccurrenceId,NoteId)
+                                              values (@OccurrenceId, @NoteId)", sqlCnn))
+                    {
+                        var paramOccurrenceId = new SqlParameter()
+                        {
+                            ParameterName = "@OccurrenceId",
+                            DbType = DbType.Int64,
+                            Value = oc.Id
+                        };
+                        sqlCmd2.Parameters.Add(paramOccurrenceId);
+                        var paramNoteId = new SqlParameter()
+                        {
+                            ParameterName = "@NoteId",
+                            DbType = DbType.Int64,
+                            Value = note.Id
+                        };
+                        sqlCmd2.Parameters.Add(paramNoteId);
+                        sqlCmd2.ExecuteNonQuery();
+                    }
+                }
+                return oc;
+            }
         }
     }
 }
