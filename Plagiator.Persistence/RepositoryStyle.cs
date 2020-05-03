@@ -8,7 +8,7 @@ namespace Plagiator.Persistence
 {
     partial class  Repository
     {
-        public async Task<Style> GetStyleById(int styleId)
+        public async Task<Style> GetStyleById(long styleId)
         {
             return await Context.Styles.FindAsync(styleId);
         }
@@ -35,7 +35,7 @@ namespace Plagiator.Persistence
             return style;
         }
 
-        public async Task DeleteStyle(int styleId)
+        public async Task DeleteStyle(long styleId)
         {
             var style = await Context.Styles.FindAsync(styleId);
             if (style == null)

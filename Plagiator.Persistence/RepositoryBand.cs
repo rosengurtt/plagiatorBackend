@@ -14,7 +14,7 @@ namespace Plagiator.Persistence
                   int pageNo = 1,
                   int pageSize = 10000,
                   string startWith = null,
-                  int? styleId = null)
+                  long? styleId = null)
         {
             if (styleId != null)
             {
@@ -34,7 +34,7 @@ namespace Plagiator.Persistence
             int pageNo = 1,
             int pageSize = 10000,
             string startWith = null,
-            int? styleId = null)
+            long? styleId = null)
         {
             if (styleId != null)
             {
@@ -51,7 +51,7 @@ namespace Plagiator.Persistence
                     .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
         }
 
-        public async Task<Band> GetBandById(int bandId)
+        public async Task<Band> GetBandById(long bandId)
         {
             return await Context.Bands.Include(x => x.Style)
                 .FirstOrDefaultAsync(x => x.Id == bandId);
@@ -80,7 +80,7 @@ namespace Plagiator.Persistence
             return band;
         }
 
-        public async Task DeleteBand(int bandId)
+        public async Task DeleteBand(long bandId)
         {
             var bandItem = await Context.Bands.FirstOrDefaultAsync(x => x.Id == bandId);
             if (bandItem == null)

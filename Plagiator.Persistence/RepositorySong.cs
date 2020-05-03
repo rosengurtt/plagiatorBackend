@@ -9,10 +9,12 @@ namespace Plagiator.Persistence
 {
     partial class Repository
     {
-        public async Task<Song> GetSongById(int songId)
+        public async Task<Song> GetSongById(long songId)
         {
             return await Context.Songs.Include(x => x.Style)
-                .Include(x => x.Band).FirstOrDefaultAsync(x => x.Id == songId);
+                .Include(x => x.Band).Include(y=>y.SongSimplifications)
+                .Include(z=>z.SongStats)
+                .FirstOrDefaultAsync(x => x.Id == songId);
         }
         public async Task<Song> GetSongByNameAndBand(string songName, string bandName)
         {
@@ -22,9 +24,9 @@ namespace Plagiator.Persistence
         public async Task<List<Song>> GetSongs(int pageNo = 1,
             int pageSize = 1000,
             string startWith = null,
-            int? bandId = null)
+            long? bandId = null)
         {
-            if (bandId != null)
+            if (bandId != null && bandId > 0)
             {
                 return await Context.Songs
                     .Where(x => x.BandId == bandId).Skip((pageNo - 1) * pageSize)
@@ -44,9 +46,9 @@ namespace Plagiator.Persistence
             int pageNo = 1,
             int pageSize = 1000,
             string startWith = null,
-            int? bandId = null)
+            long? bandId = null)
         {
-            if (bandId != null)
+            if (bandId != null && bandId > 0)
             {
                 return await Context.Songs
                     .Where(x => x.BandId == bandId).Skip((pageNo - 1) * pageSize)
@@ -76,7 +78,7 @@ namespace Plagiator.Persistence
         }
 
 
-        public async Task DeleteSong(int songId)
+        public async Task DeleteSong(long songId)
         {
             var songItem = await Context.Songs.Include(x => x.Style)
                 .FirstOrDefaultAsync(x => x.Id == songId);

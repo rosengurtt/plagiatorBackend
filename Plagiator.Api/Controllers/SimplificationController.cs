@@ -37,7 +37,7 @@ namespace Plagiator.Api.Controllers
                 if (songs == null) break;
                 foreach (var song in songs)
                 {
-                    var simpl = await Repository.GetSongSimplification(song, 0);
+                    var simpl = await Repository.GetSongSimplification(song.Id, 0);
 
                     var newSimpl = new SongSimplification()
                     {

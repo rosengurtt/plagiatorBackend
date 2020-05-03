@@ -45,7 +45,7 @@ namespace Plagiator.Api
             });
             services.AddMvc();
             var connection = Configuration.GetConnectionString("PlagiatorSql");
-            services.AddDbContextPool<PlagiatorContext>(opt => opt.UseSqlServer(connection));
+            services.AddDbContext<PlagiatorContext>(options => options.UseSqlServer(connection));
             services.AddControllers();
 
             services.AddTransient<IRepository, Repository>();

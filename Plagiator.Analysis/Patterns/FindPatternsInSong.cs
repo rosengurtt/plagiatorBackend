@@ -14,7 +14,7 @@ namespace Plagiator.Analysis.Patterns
         int version,
         PatternType patternType,
         int minLengthToSearch = 3,
-        int maxLengthToSearch = 20)
+        int maxLengthToSearch = 12)
         {
             var retObj = new Dictionary<Pattern, List<Occurrence>>();
             foreach (var instr in song.SongStats.Instruments)
@@ -45,16 +45,12 @@ namespace Plagiator.Analysis.Patterns
                         foreach (var oc in pat.Value)
                         {
                             var firstNote = melody.Notes[oc];
-                            var noteOfSongCorrespondingToFirstNote = FindNoteOfSong(firstNote, song, version, instr);
                             var patternLength = pat.Key.Split(",").Length;
-                            var lastNote = melody.Notes[oc + patternLength];
-                            var noteOfSongCorrespondingToLastNote = FindNoteOfSong(lastNote, song, version, instr);
-
+                            var ocNotes = melody.Notes.ToArray()[oc..(oc + patternLength)].ToList();
                             var o = new Occurrence()
                             {
                                 Pattern = patito,
-                                FirstNoteId = noteOfSongCorrespondingToFirstNote.Id,
-                                LastNoteId = noteOfSongCorrespondingToLastNote.Id,
+                                Notes = ocNotes,
                                 SongSimplificationId = song.SongSimplifications[version].Id
                             };
                             ocur.Add(o);

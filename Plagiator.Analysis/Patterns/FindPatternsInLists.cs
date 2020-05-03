@@ -28,13 +28,16 @@ namespace Plagiator.Analysis.Patterns
         /// For example if the sequence ["1","4","1","5"] was found in the index 35 and 76 of of the list 'strings'
         /// the dictionary will have an entry with key=["1","4","1","5"] and value [35,76]
         /// </summary>
-        /// <param name="numbers"></param>
+        /// <param name="strings">The strings may represent
+        /// - pitches (ex: {"45", "57", "63"})
+        /// - relative durations (ex: {"2", "4", "1", "1"})
+        /// - a pitch and a duration (ex: {"(45-2)", "(57-4)"}</param>
         /// <param name="minLength">The minimum length of the sequences to find</param>
         /// <param name="maxLength">The maximum length of the sequences to find</param>
         /// <returns></returns>
         public static Dictionary<string, List<int>> FindPatternsInListOfStrings(List<string> strings, int minLength, int maxLength)
         {
-            // This dictionary stores all the sequences of up to 50 numbers
+            // This dictionary stores all the sequences of up to maxLength elements
             var sequences = new Dictionary<string, List<int>>();
 
             for (int i = 0; i < strings.Count - minLength; i++)
@@ -42,10 +45,13 @@ namespace Plagiator.Analysis.Patterns
                 for (int j = minLength; j <= maxLength; j++)
                 {
                     if (i + j >= strings.Count) break;
-                    var seq = ListOfNumbersAsString(strings.GetRange(i, j));
-                    if (!sequences.Keys.Contains(seq))
-                        sequences[seq] = new List<int>();
-                    sequences[seq].Add(i);
+                    var seq = StringifyList(strings.GetRange(i, j));
+                    if (!IsRepetitionOfaShorterPattern(seq))
+                    {
+                        if (!sequences.Keys.Contains(seq))
+                            sequences[seq] = new List<int>();
+                        sequences[seq].Add(i);
+                    }
                 }
             }
             sequences = RemoveSingletons(sequences);
@@ -54,8 +60,7 @@ namespace Plagiator.Analysis.Patterns
 
         public static Dictionary<string, List<int>> FindPatternsInListOfIntegers(List<int> integers, int minLength, int maxLength)
         {
-            var listOfStrings = new List<string>();
-            foreach (var x in integers) listOfStrings.Add(x.ToString());
+            var listOfStrings = integers.Select(x=>x.ToString()).ToList();
             return FindPatternsInListOfStrings(listOfStrings, minLength, maxLength);
         }
 
@@ -89,9 +94,53 @@ namespace Plagiator.Analysis.Patterns
                     retObj[key] = sequences[key];
             return retObj;
         }
-        private static string ListOfNumbersAsString(List<string> numbers)
+
+        private static string StringifyList(List<string> numbers)
         {
             return String.Join(",", numbers);
+        }
+
+        // Tells if the pattern itself consists of a repetitive shorter pattern
+        // For ex  2,1,2,1,2,1 is a repetirion of 2,1
+        public static bool IsRepetitionOfaShorterPattern(string patternAsString)
+        {
+            try
+            {
+                var elements = patternAsString.Split(",");
+                var quantElements = elements.Count();
+                // We try with shortest possible subpattern and increase by one until finding a 
+                // subpattern or not finding any, in which case we return the original pattern
+                for (int i = 1; i <= (quantElements + 1) / 2; i++)
+                {
+                    // If i doesn't divide quantElements, then there is no subpattern of lenght i
+                    if (quantElements % i != 0) continue;
+                    var slice = elements.Take(i).ToArray();
+                    // We use this variable as a flag that is initalized as true
+                    // If we find a case where the repetition of the slice doesn't happen
+                    // we set it to false
+                    var sliceIsRepeatedUntilTheEnd = true;
+                    for (var j = 1; j < quantElements / i; j++)
+                    {
+                        for (var k = 0; k < i; k++)
+                        {
+                            if (slice[k] != elements[j * i + k])
+                            {
+                                sliceIsRepeatedUntilTheEnd = false;
+                                break;
+                            }
+                            if (!sliceIsRepeatedUntilTheEnd) break;
+                        }
+                    }
+                    // If the flag is still true, we found a pattern of length i
+                    if (sliceIsRepeatedUntilTheEnd) return true;
+                }
+                return false;
+            }
+            catch(Exception ex)
+            {
+
+            }
+            return false;
         }
     }
 }

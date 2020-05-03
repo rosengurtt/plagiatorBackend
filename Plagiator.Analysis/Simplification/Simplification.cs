@@ -24,6 +24,10 @@ namespace Plagiator.Analysis
 
         // Bajo
         // Juntar notas consecutivas
+
+        // simpl 0 - original sin bendings
+        // simpl 1 - 1 track chords, 1 track melody, 1 track percussion
+        // 
        
     }
 }

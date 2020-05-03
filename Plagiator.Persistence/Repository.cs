@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Plagiator.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,11 @@ namespace Plagiator.Persistence
     public partial class Repository : IRepository
     {
         private readonly PlagiatorContext Context;
-        public Repository(PlagiatorContext context)
+        private readonly string ConnectionString;
+        public Repository(PlagiatorContext context, IConfiguration configuration)
         {
             Context = context;
+            ConnectionString = configuration.GetSection("ConnectionStrings:PlagiatorSql").Value;
         }
 
         public async Task<TimeSignature> GetTimeSignature(TimeSignature ts)

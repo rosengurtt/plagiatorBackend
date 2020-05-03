@@ -9,8 +9,8 @@ namespace Plagiator.Analysis.Patterns
 {
     public static partial class PatternUtilities
     {
-        // Simplify cases like 17,15,16 to 1,1,1
-        private static Pattern Simpl1(Pattern pattern)
+        // For durations only. Simplify cases like 17,15,16 to 1,1,1
+        public static Pattern Simpl1(Pattern pattern)
         {
             if (pattern.PatternTypeId == PatternType.Pitch) return pattern;
 
@@ -22,8 +22,8 @@ namespace Plagiator.Analysis.Patterns
             }
             return pattern;
         }
-        // Simplify cases like 16,3,3,3,3,6
-        private static Pattern Simpl2(Pattern pattern)
+        // For durations only. Simplify cases like 16,3,3,3,3,6 to 5,1,1,1,1,2
+        public static Pattern Simpl2(Pattern pattern)
         {
             if (pattern.PatternTypeId == PatternType.Pitch) return pattern;
 
@@ -45,8 +45,9 @@ namespace Plagiator.Analysis.Patterns
             return pattern;
         }
 
-        // Divide by the maximum common divisor, so for ex 4,2,2 is converted to 2,1,1
-        private static Pattern Simpl3(Pattern pattern)
+        // For durations only. Divide by the maximum common divisor, 
+        // so for ex 4,2,2 is converted to 2,1,1
+        public static Pattern Simpl3(Pattern pattern)
         {
             if (pattern.PatternTypeId == PatternType.Pitch) return pattern;
 
@@ -58,19 +59,42 @@ namespace Plagiator.Analysis.Patterns
 
         }
 
-        // If the pattern itself has a pattern, get the shortest pattern
+        // If the pattern itself consists of a repetitive pattern, get the shortest pattern
         // For ex instead of 2,1,2,1,2,1 we want just 2,1
-        private static Pattern Simpl4(Pattern pattern)
+        public static Pattern Simpl4(Pattern pattern)
         {
-            if (pattern.PatternTypeId != PatternType.Rythm) return pattern;
-
-            List<int> RelativeDurations = GetDurationsOfPattern(pattern);
-            var newDurations = GetShortestPattern(RelativeDurations);
-            return new Pattern
+            var elements = pattern.AsString.Split(",");
+            var quantElements = elements.Count();
+            // We try with shortest possible subpattern and increase by one until finding a 
+            // subpattern or not finding any, in which case we return the original pattern
+            for (int i = 1; i < quantElements / 2; i++)
             {
-                AsString = string.Join(",", newDurations),
-                PatternTypeId = PatternType.Rythm
-            };
+                // If i doesn't divide quantElements, then there is no subpattern of lenght i
+                if (quantElements % i != 0) continue;
+                var slice = elements.Take(i).ToArray();
+                // We use this variable as a flag that is initalized as true
+                // If we find a case where the repetition of the slice doesn't happen
+                // we set it to false
+                var sliceIsRepeatedUntilTheEnd = true;
+                for (var j = 1; j < quantElements / i; j++)
+                {
+                    for (var k = 0; k < i; k++)
+                    {
+                        if (slice[k] != elements[j * i + k])
+                            sliceIsRepeatedUntilTheEnd = false;
+                    }
+                }
+                // If the flag is still true, we found a pattern of length i
+                if (sliceIsRepeatedUntilTheEnd)
+                {
+                    return new Pattern
+                    {
+                        AsString = string.Join(",", slice),
+                        PatternTypeId = pattern.PatternTypeId
+                    };
+                }
+            }
+            return pattern;
         }
         private static List<int> GetDurationsOfPattern(Pattern pattern)
         {

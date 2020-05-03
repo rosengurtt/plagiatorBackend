@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Plagiator.Models.Entities
@@ -17,10 +18,8 @@ namespace Plagiator.Models.Entities
         public long PatternId { get; set; }
         public Pattern Pattern { get; set; }
 
-        public long FirstNoteId { get; set; }
-        public Note FirstNote { get; set; }
-        public long LastNoteId { get; set; }
-        public Note LastNote { get; set; }
+        [NotMapped]
+        public List<Note> Notes { get; set; }
 
         public long SongSimplificationId { get; set; }
         public SongSimplification SongSimplification { get; set; }
@@ -33,14 +32,8 @@ namespace Plagiator.Models.Entities
                 AsString = this.Pattern.AsString,
                 PatternTypeId = this.Pattern.PatternTypeId
             };
-            if (FirstNote != null)
-            {
-                retObj.FirstNote = this.FirstNote.Clone();
-                retObj.LastNote = this.LastNote.Clone();
-            }
             retObj.SongSimplification = this.SongSimplification;
-            retObj.FirstNoteId = this.FirstNoteId;
-            retObj.LastNoteId = this.LastNoteId;
+            retObj.Notes = this.Notes;
             return retObj;
         }
     }

@@ -31,6 +31,7 @@ namespace Plagiator.Persistence
 
         public DbSet<Melody> Melodies { get; set; }
         public DbSet<MelodyNote> MelodyNotes { get; set; }
+        public DbSet<OccurrenceNote> OccurrenceNotes { get; set; }
 
 
 
@@ -51,6 +52,7 @@ namespace Plagiator.Persistence
             modelBuilder.Entity<ChordOccurrence>().ToTable("ChordOccurrences");
             modelBuilder.Entity<Melody>().ToTable("Melodies");
             modelBuilder.Entity<MelodyNote>().ToTable("MelodyNotes");
+            modelBuilder.Entity<OccurrenceNote>().ToTable("OccurrenceNotes");
 
             modelBuilder.Entity<Style>()
                 .HasAlternateKey(c => c.Name).HasName("IX_StyleName");

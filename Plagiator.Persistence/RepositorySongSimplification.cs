@@ -9,10 +9,10 @@ namespace Plagiator.Persistence
 {
     partial class Repository
     {
-        public async Task<SongSimplification> GetSongSimplification(Song song, int version)
+        public async Task<SongSimplification> GetSongSimplification(long songId, int version)
         {
             return await Context.SongSimplifications
-                .Where(s => s.SongId == song.Id && s.SimplificationVersion == version)
+                .Where(s => s.SongId == songId && s.SimplificationVersion == version)
                 .Include("Notes.PitchBending")
                 .FirstOrDefaultAsync();
         }
@@ -30,5 +30,11 @@ namespace Plagiator.Persistence
             return simpl;
         }
 
+        public async Task<List<Note>> GetSongSimplificationNotes(long songSimplificationId)
+        {
+            return await Context.Notes
+                .Where(x => x.SongSimplificationId == songSimplificationId)
+                .OrderBy(y => y.StartSinceBeginningOfSongInTicks).ToListAsync();
+        }
     }
 }

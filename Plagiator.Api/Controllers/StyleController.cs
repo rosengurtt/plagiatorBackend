@@ -20,7 +20,6 @@ namespace SQLDBAccess.Controllers
         {
             this.Repository = Repository;
         }
-        [EnableCors]
         [HttpGet]
         public async Task<ActionResult<IEnumerable>> GetStyles(int pageNo = 1, int pageSize = 10, string startWith = null)
         {

@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS  OccurrenceNotes
 DROP TABLE IF EXISTS  Occurrences
 DROP TABLE IF EXISTS  Patterns
 DROP TABLE IF EXISTS  PatternTypes
@@ -254,6 +255,7 @@ REFERENCES Melodies (Id)
 ALTER TABLE MelodyNotes  WITH CHECK ADD  CONSTRAINT FK_MelodyNotes_Notes FOREIGN KEY(NoteId)
 REFERENCES Notes (Id)
 
+
 CREATE TABLE Bars(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	BarNumber bigint null,
@@ -314,9 +316,7 @@ REFERENCES PatternTypes (Id)
 CREATE TABLE Occurrences(
 	Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
 	SongSimplificationId bigint not null,
-	PatternId bigint not null,
-	FirstNoteId bigint not null,
-	LastNoteId bigint not null
+	PatternId bigint not null
 ) 
 ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_SongSimplifications FOREIGN KEY(SongSimplificationId)
 REFERENCES SongSimplifications (Id)
@@ -328,3 +328,12 @@ ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_Patterns FORE
 REFERENCES Patterns (Id)
 
 
+CREATE TABLE OccurrenceNotes(
+    Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+    OccurrenceId bigint not null,
+    NoteId bigint not null
+)
+ALTER TABLE OccurrenceNotes  WITH CHECK ADD  CONSTRAINT FK_OccurrenceNotes_Occurrences FOREIGN KEY(OccurrenceId)
+REFERENCES Occurrences (Id)
+ALTER TABLE OccurrenceNotes  WITH CHECK ADD  CONSTRAINT FK_OccurrenceNotes_Notes FOREIGN KEY(NoteId)
+REFERENCES Notes (Id)
