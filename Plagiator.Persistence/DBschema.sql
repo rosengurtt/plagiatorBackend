@@ -320,10 +320,6 @@ CREATE TABLE Occurrences(
 ) 
 ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_SongSimplifications FOREIGN KEY(SongSimplificationId)
 REFERENCES SongSimplifications (Id)
-ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_FirstNotes FOREIGN KEY(FirstNoteId)
-REFERENCES Notes (Id)
-ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_LastNotes FOREIGN KEY(LastNoteId)
-REFERENCES Notes (Id)
 ALTER TABLE Occurrences  WITH CHECK ADD  CONSTRAINT FK_Occurrences_Patterns FOREIGN KEY(PatternId)
 REFERENCES Patterns (Id)
 

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Plagiator.Analysis
+namespace Plagiator.Analysis.Chords
 {
-    public static partial class SimplificationUtilities
+    public static class ChordsUtilities
     {
         /// <summary>
         /// Looks for unique chords and all their occurrences in a song simplification
@@ -18,7 +18,7 @@ namespace Plagiator.Analysis
         public static Dictionary<string, List<ChordOccurrence>> GetChordsOfSimplification(SongSimplification simpl)
         {
             var durationOfHalfBeatInTicks = 48;
-            var retObj = new  Dictionary<string, List<ChordOccurrence>>();
+            var retObj = new Dictionary<string, List<ChordOccurrence>>();
             // We create a dictionary where the keys are points it time
             // one for every half beat of the song and the values are the notes 
             // played in that half beat
@@ -47,10 +47,10 @@ namespace Plagiator.Analysis
                 var sliceNotes = beatNotes[slice];
                 if (sliceNotes.Count < 2) continue;
                 var possibleChords = new List<List<Note>>();
-                foreach(var n in sliceNotes)
+                foreach (var n in sliceNotes)
                 {
                     var isNoteProcessed = false;
-                    foreach(var possibleChord in possibleChords)
+                    foreach (var possibleChord in possibleChords)
                     {
                         if (IsNoteSimultaneousWithGroup(possibleChord, n))
                         {
@@ -62,7 +62,7 @@ namespace Plagiator.Analysis
                     {
                         var possibleChord = new List<Note>();
                         possibleChord.Add(n);
-                        possibleChords.Add(possibleChord);                        
+                        possibleChords.Add(possibleChord);
                     }
                 }
                 // We have now in possibleChords a list of groups of notes
@@ -90,7 +90,7 @@ namespace Plagiator.Analysis
             return retObj;
         }
 
-        
+
 
         private static bool IsOccurrenceAlreadyInList(List<ChordOccurrence> list, ChordOccurrence co)
         {
@@ -119,18 +119,18 @@ namespace Plagiator.Analysis
                 return (quotient + 1) * (precision);
         }
 
-     
+
         private static bool IsNoteSimultaneousWithGroup(List<Note> group, Note n)
         {
             var groupStart = group.FirstOrDefault().StartSinceBeginningOfSongInTicks;
             var groupEnd = group.FirstOrDefault().EndSinceBeginningOfSongInTicks;
-             
-            if (groupStart==n.StartSinceBeginningOfSongInTicks &&
-                groupEnd==n.EndSinceBeginningOfSongInTicks)
+
+            if (groupStart == n.StartSinceBeginningOfSongInTicks &&
+                groupEnd == n.EndSinceBeginningOfSongInTicks)
                 return true;
             return false;
         }
- 
+
         /// <summary>
         /// If we have a group of notes, where they all have the same pitch
         /// they don't produce harmony. This method checks if a group of 
@@ -142,13 +142,13 @@ namespace Plagiator.Analysis
         {
             if (notes.Count < 2) return false;
             var firstNote = notes[0];
-            foreach(var n in notes)
+            foreach (var n in notes)
             {
                 if (Math.Abs(n.Pitch - firstNote.Pitch) % 12 > 0) return true;
             }
             return false;
         }
-    
-     
+
+
     }
 }

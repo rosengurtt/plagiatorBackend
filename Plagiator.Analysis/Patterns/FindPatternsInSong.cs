@@ -3,7 +3,6 @@ using Plagiator.Models.enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Plagiator.Analysis.Patterns
 {
@@ -20,7 +19,7 @@ namespace Plagiator.Analysis.Patterns
             foreach (var instr in song.SongStats.Instruments)
             {
                 var notes = song.SongSimplifications[version].NotesOfInstrument(instr);
-                var voicesNotes = GetVoices(notes.ToList());
+                var voicesNotes = Utilities.GetVoices(notes.ToList());
                 foreach (var voice in voicesNotes.Keys)
                 {
                     var melody = new Melody(voicesNotes[voice]);
@@ -70,17 +69,17 @@ namespace Plagiator.Analysis.Patterns
         /// </summary>
         /// <param name="notes"></param>
         /// <returns></returns>
-        private static Dictionary<int, List<Note>> GetVoices(List<Note> notes)
-        {
-            var voicesNotes = new Dictionary<int, List<Note>>();
-            foreach (var note in notes)
-            {
-                if (!voicesNotes.Keys.Contains(note.Voice))
-                    voicesNotes[note.Voice] = new List<Note>();
-                voicesNotes[note.Voice].Add(note);
-            }
-            return voicesNotes;
-        }
+        //private static Dictionary<int, List<Note>> GetVoices(List<Note> notes)
+        //{
+        //    var voicesNotes = new Dictionary<int, List<Note>>();
+        //    foreach (var note in notes)
+        //    {
+        //        if (!voicesNotes.Keys.Contains(note.Voice))
+        //            voicesNotes[note.Voice] = new List<Note>();
+        //        voicesNotes[note.Voice].Add(note);
+        //    }
+        //    return voicesNotes;
+        //}
 
         private static Note FindNoteOfSong(Note note, Song song, int version, int instr)
         {

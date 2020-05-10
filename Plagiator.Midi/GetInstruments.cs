@@ -16,6 +16,7 @@ namespace Plagiator.Midi
                 var ev = eve as ProgramChangeEvent;
                 if (!instruments.Contains(ev.ProgramNumber)) instruments.Add(ev.ProgramNumber);
             }
+            if (instruments.Count() == 0) return "0";
             return string.Join((","), instruments);
         }
     }

@@ -19,7 +19,7 @@ namespace Plagiator.Persistence
             ConnectionString = configuration.GetSection("ConnectionStrings:PlagiatorSql").Value;
         }
 
-        public async Task<TimeSignature> GetTimeSignature(TimeSignature ts)
+        public async Task<TimeSignature> GetTimeSignatureAsync(TimeSignature ts)
         {
             return await Context.TimeSignatures.Where(x => x.Numerator == ts.Numerator &
             x.Denominator == ts.Denominator).FirstOrDefaultAsync();

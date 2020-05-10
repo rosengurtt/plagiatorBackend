@@ -33,11 +33,11 @@ namespace Plagiator.Api.Controllers
             while (true)
             {
                 currentPage++;
-                var songs = await Repository.GetSongs(currentPage, 3, null, 24);
+                var songs = await Repository.GetSongsAsync(currentPage, 3, null, 24);
                 if (songs == null) break;
                 foreach (var song in songs)
                 {
-                    var simpl = await Repository.GetSongSimplification(song.Id, 0);
+                    var simpl = await Repository.GetSongSimplificationAsync(song.Id, 0);
 
                     var newSimpl = new SongSimplification()
                     {
@@ -46,7 +46,7 @@ namespace Plagiator.Api.Controllers
                         SongId = simpl.SongId
                     };
                     SimplificationUtilities.RemoveBendings(newSimpl.Notes);
-                    await Repository.AddSongSimplification(newSimpl);
+                    await Repository.AddSongSimplificationAsync(newSimpl);
                 }
             }
 

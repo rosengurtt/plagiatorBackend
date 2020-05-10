@@ -10,6 +10,10 @@ namespace Plagiator.Models.Entities
     /// <summary>
     /// We create simplificated versions of songs by removing less important notes
     /// We remove gradually more and more notes and create more simplified versions
+    /// 
+    /// Version 0 - original
+    /// Version 1 - bendings removed (converted to normal notes)
+    /// Version 2 - passing notes and embelishments removed
     /// </summary>
     public class SongSimplification
     {

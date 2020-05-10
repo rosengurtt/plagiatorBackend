@@ -1,0 +1,226 @@
+﻿using Plagiator.Models.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Plagiator.Analysis.Simplification
+{
+    public static partial class SimplificationUtilities
+    {
+        /// <summary>
+        /// A passing note is a note with a short duration whose pitch
+        /// is between the pitch of a previous note and a subsequent note
+        /// There can be 1 or 2 consecutive passing notes. If there are more
+        /// then we consider it to be a scale rather than a passing note
+        /// </summary>
+        /// <param name="notes"></param>
+        /// <returns></returns>
+        public static List<Note> RemovePassingNotes(List<Note> notes)
+        {
+            var retObj = new List<Note>();
+            var voices = Utilities.GetVoices(notes);
+            foreach (var voice in voices.Keys)
+            {
+                var voiceNotes = voices[voice].OrderBy(n => n.StartSinceBeginningOfSongInTicks).ToList();
+                foreach( var n in voiceNotes)
+                {
+                    if (n.IsPercussion)
+                    {
+                        retObj.Add(n);
+                        continue;
+                    }
+                    var neighboors = GetNeighboorsOfNote(n, notes)
+                        .OrderBy(x=>x.StartSinceBeginningOfSongInTicks).ToList();
+                    for (var i = 0; i < neighboors.Count; i++)
+                    {
+                        var prev2 = i > 1 ? neighboors[i - 2] : null;
+                        var prev1 = i > 0 ? neighboors[i - 1] : null;
+                        var next1 = i < neighboors.Count() - 1 ? neighboors[i + 1] : null;
+                        var next2 = i < neighboors.Count() - 2 ? neighboors[i + 2] : null;
+
+                        if (!IsPassingNote(prev2, prev1, n, next1, next2))
+                            retObj.Add(n);
+                    }
+                }
+            }
+            return retObj;
+        }
+
+        private static List<Note> RemoveMordents(List<Note> notes)
+        {
+            var retObj = new List<Note>();
+            var voices = Utilities.GetVoices(notes);
+            // We put in this list the notes that have been found to be part of a mordent
+            // and therefore have been absorved to a previous note, so we don't compute them twice
+            var membersOfMordents = new List<Note>();
+            foreach (var voice in voices.Keys)
+            {
+                var voiceNotes = voices[voice].OrderBy(n => n.StartSinceBeginningOfSongInTicks).ToList();
+                foreach (var n in voiceNotes)
+                {
+                    if (n.IsPercussion)
+                    {
+                        retObj.Add(n);
+                        continue;
+                    }
+                    if (membersOfMordents.Contains(n)) continue;
+                    var neighboors = GetNeighboorsOfNote(n, notes)
+                    .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList();
+                    for (var i = 0; i < neighboors.Count; i++)
+                    {
+                        var next1 = i < neighboors.Count() - 1 ? neighboors[i + 1] : null;
+                        var next2 = i < neighboors.Count() - 2 ? neighboors[i + 2] : null;
+
+                        if (IsMordent(n, next1, next2))
+                        {
+                            n.EndSinceBeginningOfSongInTicks = next2.EndSinceBeginningOfSongInTicks;
+                            membersOfMordents.Add(next1);
+                            membersOfMordents.Add(next2);
+                        }
+                        retObj.Add(n);
+                    }
+                }
+            }
+            return retObj;
+        }
+
+        private static List<Note> RemoveTurns(List<Note> notes)
+        {
+            var retObj = new List<Note>();
+            var voices = Utilities.GetVoices(notes);
+            // We put in this list the notes that have been found to be part of a mordent
+            // and therefore have been absorved to a previous note, so we don't compute them twice
+            var membersOfTurns = new List<Note>();
+            foreach (var voice in voices.Keys)
+            {
+                var voiceNotes = voices[voice].OrderBy(n => n.StartSinceBeginningOfSongInTicks).ToList();
+                foreach (var n in voiceNotes)
+                {
+                    if (n.IsPercussion)
+                    {
+                        retObj.Add(n);
+                        continue;
+                    }
+                    if (membersOfTurns.Contains(n)) continue;
+                    var neighboors = GetNeighboorsOfNote(n, notes)
+                    .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList();
+
+                    var sliceOf6 = neighboors.Take(5).Prepend(n).ToArray();
+
+                    if (IsTurn(sliceOf6))
+                    {
+                        var left = n;
+                        var right = sliceOf6[5];
+                        var middle = new Note
+                        {
+                            Pitch = (byte)Math.Round(neighboors.Take(4).Select(x => (int)x.Pitch).Average()),
+                            StartSinceBeginningOfSongInTicks = sliceOf6[0].StartSinceBeginningOfSongInTicks,
+                            EndSinceBeginningOfSongInTicks = sliceOf6[4].EndSinceBeginningOfSongInTicks,
+                            Instrument = n.Instrument,
+                            IsPercussion = false,
+                            SongSimplificationId = n.SongSimplificationId,
+                            Voice = n.Voice,
+                            Volume = (byte)Math.Round(neighboors.Take(4).Select(x => (int)x.Volume).Average())
+                        };
+                        retObj.Add(left);
+                        retObj.Add(middle);
+                        retObj.Add(right);
+                    }
+                    retObj.Add(n);
+                }
+            }
+            return retObj;
+        }
+        /// <summary>
+        /// Neighboors of a note are notes that start at the same time or up to 4 quarters later
+        /// and that have a pitch that is not more than 1 tone higher or lower
+        /// </summary>
+        /// <param name="n"></param>
+        /// <param name="notes"></param>
+        /// <returns></returns>
+        private static List<Note> GetNeighboorsOfNote(Note n, List<Note> notes)
+        {
+            return notes.Where(x => x != n && Math.Abs(x.Pitch - n.Pitch) < 3 &&
+            (x.StartSinceBeginningOfSongInTicks >= n.StartSinceBeginningOfSongInTicks) &&
+            (x.StartSinceBeginningOfSongInTicks - n.StartSinceBeginningOfSongInTicks) < 96 * 4)
+                .ToList();
+        }
+
+        private static bool IsPassingNote(Note prev2, Note prev1, Note n, Note next1, Note next2)
+        {
+            if (IsNoteBetweenNotes(prev2, prev1, n) &&
+                IsNoteBetweenNotes(prev1, n, next1) &&
+                IsNoteShorterThanSurroundingNotes(prev2, n, next1))
+                return true;
+            if (IsNoteBetweenNotes(prev1, n, next1) &&
+                IsNoteBetweenNotes(n, next1, next2) &&
+                IsNoteShorterThanSurroundingNotes(prev1, n, next2))
+                return true;
+            if (IsNoteBetweenNotes(prev1, n, next1) && IsNoteShorterThanSurroundingNotes(prev1, n, next1))
+                return true;
+            return false;
+        }
+
+        private static bool IsNoteBetweenNotes(Note prev, Note n, Note next)
+        {
+            if (prev == null || next == null) return false;
+            if (prev.Pitch < n.Pitch && n.Pitch < next.Pitch) return true;
+            if (prev.Pitch > n.Pitch && n.Pitch > next.Pitch) return true;
+            return false;
+        }
+        private static bool IsNoteShorterThanSurroundingNotes(Note prev, Note n, Note next)
+        {
+            if (prev == null || next == null) return false;
+            if (n.DurationInTicks * 2 < prev.DurationInTicks && n.DurationInTicks * 2 < next.DurationInTicks) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// A mordent is a rapid alternation between an indicated note, the note above 
+        /// or below  and the indicated note again
+        /// </summary>
+        /// <param name="n"></param>
+        /// <param name="next1"></param>
+        /// <param name="next2"></param>
+        /// <returns></returns>
+        private static bool IsMordent(Note n, Note next1, Note next2)
+        {
+            if (n.Pitch != next2.Pitch) return false;
+            if (Math.Abs(n.Pitch - next1.Pitch) > 2 || n.Pitch == next1.Pitch) return false;
+            if ((n.DurationInTicks + next1.DurationInTicks) * 2 <= next2.DurationInTicks) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// A turn is a short figure consisting of the note above the one indicated, the note itself, 
+        /// the note below the one indicated, and the note itself again.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        private static bool IsTurn(Note[] n)
+        {
+            var length = n.Length;
+            if (length < 6 || length > 7) return false;
+            if (!AreNotesPitchesClose(n)) return false;
+            var durationOfExtremes = n[0].DurationInTicks + n[n.Length - 1].DurationInTicks;
+            var durationOfInteriors = 0;
+            for (var i = 1; i < n.Length - 1; i++) durationOfInteriors += n[i].DurationInTicks;
+            if (length == 6 && durationOfExtremes > 2 * durationOfInteriors) return true;
+            if (length == 7 && durationOfExtremes > 1.6 * durationOfInteriors) return true;
+            return false;
+        }
+
+        private static bool AreNotesPitchesClose(Note[] n)
+        {
+            for (int i = 0; i < n.Length - 1; i++)
+            {
+                for (int j = 1; j < n.Length; j++)
+                {
+                    if (Math.Abs(n[i].Pitch - n[j].Pitch) > 2) return false;
+                }
+            }
+            return true;
+        }
+    }
+}

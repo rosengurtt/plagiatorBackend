@@ -76,29 +76,30 @@ namespace Plagiator.Persistence
         }
         public Pattern AddPattern(Pattern pattern)
         {
-            var sqlCnn = new SqlConnection(ConnectionString);
-            sqlCnn.Open();
-            using (var sqlCmd = new SqlCommand(@"insert into Patterns(AsString, PatternTypeId)
+            using (var sqlCnn = new SqlConnection(ConnectionString))
+            {
+                sqlCnn.Open();
+                using (var sqlCmd = new SqlCommand(@"insert into Patterns(AsString, PatternTypeId)
                                               values (@AsString, @PatternTypeId);
                                               SELECT SCOPE_IDENTITY();", sqlCnn))
-            {
-                var AsString = new SqlParameter()
                 {
-                    ParameterName = "@AsString",
-                    DbType = DbType.String,
-                    Value = pattern.AsString
-                };
-                sqlCmd.Parameters.Add(AsString);
-                var paramPatternTypeId = new SqlParameter()
-                {
-                    ParameterName = "@PatternTypeId",
-                    DbType = DbType.Int32,
-                    Value = pattern.PatternTypeId
-                };
-                sqlCmd.Parameters.Add(paramPatternTypeId);
-                pattern.Id = Convert.ToInt64(sqlCmd.ExecuteScalar());
+                    var AsString = new SqlParameter()
+                    {
+                        ParameterName = "@AsString",
+                        DbType = DbType.String,
+                        Value = pattern.AsString
+                    };
+                    sqlCmd.Parameters.Add(AsString);
+                    var paramPatternTypeId = new SqlParameter()
+                    {
+                        ParameterName = "@PatternTypeId",
+                        DbType = DbType.Int32,
+                        Value = pattern.PatternTypeId
+                    };
+                    sqlCmd.Parameters.Add(paramPatternTypeId);
+                    pattern.Id = Convert.ToInt64(sqlCmd.ExecuteScalar());
+                }
             }
-            sqlCnn.Close();
             return pattern;
         }
 
@@ -129,14 +130,14 @@ namespace Plagiator.Persistence
                 }
             }
         }
-        public async Task<List<Occurrence>> GetPatternOccurrencesOfSongSimplification(long songSimplificationId)
+        public async Task<List<Occurrence>> GetPatternOccurrencesOfSongSimplificationAsync(long songSimplificationId)
         {
             return await Context.Occurrences
                 .Where(x => x.SongSimplificationId == songSimplificationId)
                 .Include(y => y.Pattern).ToListAsync();
         }
 
-        public async Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternId(
+        public async Task<List<Occurrence>> GetOccurrencesForSongVersionIdAndPatternIdAsync(
             long SongSimplificationId, long patternId)
         {
 

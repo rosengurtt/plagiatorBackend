@@ -35,17 +35,17 @@ namespace Plagiator.Api.Controllers
                 foreach (var stylePath in styles)
                 {
                     var styleName = FileSystemUtils.GetLastDirectoryName(stylePath);
-                    Style style = await Repository.GetStyleByName(styleName);
+                    Style style = await Repository.GetStyleByNameAsync(styleName);
                     if (style == null)
                     {
                         style = new Style() { Name = styleName };
-                        await Repository.AddStyle(style);
+                        await Repository.AddStyleAsync(style);
                     }
                     var bandsPaths = Directory.GetDirectories(stylePath);
                     foreach (var bandPath in bandsPaths)
                     {
                         var bandName = FileSystemUtils.GetLastDirectoryName(bandPath);
-                        Band band = await Repository.GetBandByName(bandName);
+                        Band band = await Repository.GetBandByNameAsync(bandName);
                         if (band == null)
                         {
                             band = new Band()
@@ -53,12 +53,12 @@ namespace Plagiator.Api.Controllers
                                 Name = bandName,
                                 Style = style
                             };
-                            await Repository.AddBand(band);
+                            await Repository.AddBandAsync(band);
                         }
                         var songsPaths = Directory.GetFiles(bandPath);
                         foreach (var songPath in songsPaths)
                         {
-                            var songita = await Repository.GetSongByNameAndBand(Path.GetFileName(songPath), bandName);
+                            var songita = await Repository.GetSongByNameAndBandAsync(Path.GetFileName(songPath), bandName);
                             if (songita == null)
                             {
                                 var song = await ProcesameLaSong(songPath, band, style);
@@ -83,8 +83,8 @@ namespace Plagiator.Api.Controllers
             if (string.IsNullOrEmpty(band)) return BadRequest(new ApiBadRequestResponse("Parameter band missing"));
             if (string.IsNullOrEmpty(style)) return BadRequest(new ApiBadRequestResponse("Parameter style missing"));
 
-            var stylito = await Repository.GetStyleByName(style);
-            var bandita = await Repository.GetBandByName(band);
+            var stylito = await Repository.GetStyleByNameAsync(style);
+            var bandita = await Repository.GetBandByNameAsync(band);
             var song = await ProcesameLaSong(songPath, bandita, stylito);
 
             return Ok(new ApiOKResponse("Gracias papi"));
@@ -119,7 +119,7 @@ namespace Plagiator.Api.Controllers
                 // The following line is  used to get the id of the time signature. If we don't
                 // provide the id when saving the song, it will create a duplicated time signature
                 // in the TimeSignatures table
-                song.SongStats.TimeSignature = await Repository.GetTimeSignature(song.SongStats.TimeSignature);
+                song.SongStats.TimeSignature = await Repository.GetTimeSignatureAsync(song.SongStats.TimeSignature);
 
                 song.SongSimplifications = new List<SongSimplification>();
                 song.SongSimplifications.Add(MidiUtilities.GetSimplificationZeroOfSong(midiBase64encoded));
@@ -128,7 +128,7 @@ namespace Plagiator.Api.Controllers
                     .ToList();
                 song.TempoChanges = MidiUtilities.GetTempoChanges(midiBase64encoded);
                 song.SongStats.NumberBars = song.Bars.Count();
-                song = await Repository.AddSong(song);              
+                song = await Repository.AddSongAsync(song);              
 
                 return song;
             }
@@ -158,7 +158,7 @@ namespace Plagiator.Api.Controllers
                 oc.SongSimplificationId = song.SongSimplifications[0].Id;
             }
             song.SongSimplifications[0].Occurrences = allOccurrences;
-            await Repository.UpdateSong(song);
+            await Repository.UpdateSongAsync(song);
         }
     }
 }

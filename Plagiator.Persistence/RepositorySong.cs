@@ -9,19 +9,19 @@ namespace Plagiator.Persistence
 {
     partial class Repository
     {
-        public async Task<Song> GetSongById(long songId)
+        public async Task<Song> GetSongByIdAsync(long songId)
         {
             return await Context.Songs.Include(x => x.Style)
                 .Include(x => x.Band).Include(y=>y.SongSimplifications)
                 .Include(z=>z.SongStats)
                 .FirstOrDefaultAsync(x => x.Id == songId);
         }
-        public async Task<Song> GetSongByNameAndBand(string songName, string bandName)
+        public async Task<Song> GetSongByNameAndBandAsync(string songName, string bandName)
         {
             return await Context.Songs.FirstOrDefaultAsync(x => x.Name == songName & x.Band.Name == bandName);
         }
 
-        public async Task<List<Song>> GetSongs(int pageNo = 1,
+        public async Task<List<Song>> GetSongsAsync(int pageNo = 1,
             int pageSize = 1000,
             string startWith = null,
             long? bandId = null)
@@ -42,35 +42,30 @@ namespace Plagiator.Persistence
         }
 
         
-        public async Task<int> GetNumberOfSongs(
-            int pageNo = 1,
-            int pageSize = 1000,
+        public async Task<int> GetNumberOfSongsAsync(
             string startWith = null,
             long? bandId = null)
         {
             if (bandId != null && bandId > 0)
             {
                 return await Context.Songs
-                    .Where(x => x.BandId == bandId).Skip((pageNo - 1) * pageSize)
-                    .Take(pageSize).CountAsync();
+                    .Where(x => x.BandId == bandId).CountAsync();
             }
             if (string.IsNullOrEmpty(startWith))
-                return await Context.Songs.Skip((pageNo - 1) * pageSize)
-                    .Take(pageSize).CountAsync();
+                return await Context.Songs.CountAsync();
             else
-                return await Context.Songs.Where(x => x.Name.StartsWith(startWith))
-                    .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
+                return await Context.Songs.Where(x => x.Name.StartsWith(startWith)).CountAsync();
         }
 
 
-        public async Task<Song> UpdateSong(Song song)
+        public async Task<Song> UpdateSongAsync(Song song)
         {
             Context.Entry(await Context.Songs.FirstOrDefaultAsync(x => x.Id == song.Id))
                 .CurrentValues.SetValues(song);
             await Context.SaveChangesAsync();
             return song;
         }
-        public async Task<Song> AddSong(Song song)
+        public async Task<Song> AddSongAsync(Song song)
         {
             Context.Songs.Add(song);
             await Context.SaveChangesAsync();
@@ -78,7 +73,7 @@ namespace Plagiator.Persistence
         }
 
 
-        public async Task DeleteSong(long songId)
+        public async Task DeleteSongAsync(long songId)
         {
             var songItem = await Context.Songs.Include(x => x.Style)
                 .FirstOrDefaultAsync(x => x.Id == songId);
@@ -89,28 +84,5 @@ namespace Plagiator.Persistence
             await Context.SaveChangesAsync();
         }
 
-        public async Task<List<Style>> GetStyles(
-            int pageNo = 1,
-            int pageSize = 10,
-            string startWith = null)
-        {
-            if (string.IsNullOrEmpty(startWith))
-                return await Context.Styles.OrderBy(x => x.Name).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
-            else
-                return await Context.Styles.OrderBy(x => x.Name).Where(x => x.Name.StartsWith(startWith)).Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
-        }
-        public async Task<int> GetNumberOfStyles(
-            int pageNo = 1,
-            int pageSize = 10,
-            string startWith = null)
-        {
-            if (string.IsNullOrEmpty(startWith))
-                return await Context.Styles.OrderBy(x => x.Name)
-                    .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
-            else
-                return await Context.Styles.OrderBy(x => x.Name)
-                    .Where(x => x.Name.StartsWith(startWith))
-                    .Skip((pageNo - 1) * pageSize).Take(pageSize).CountAsync();
-        }
     }
 }

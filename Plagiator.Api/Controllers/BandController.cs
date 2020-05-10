@@ -26,9 +26,9 @@ namespace Plagiator.Api.Controllers
             string startWith = null,
             int? styleId = null)
         {
-            var totalBands = await Repository.GetNumberOfBands(pageNo, pageSize, startWith, styleId);
+            var totalBands = await Repository.GetNumberOfBandsAsync(startWith, styleId);
 
-            var bands = await Repository.GetBands(pageNo, pageSize, startWith, styleId);
+            var bands = await Repository.GetBandsAsync(pageNo, pageSize, startWith, styleId);
             var retObj = new
             {
                 page = pageNo,
@@ -42,7 +42,7 @@ namespace Plagiator.Api.Controllers
         [HttpGet("{bandId}")]
         public async Task<IActionResult> GetBand(int bandId)
         {
-            var band = await Repository.GetBandById(bandId);
+            var band = await Repository.GetBandByIdAsync(bandId);
 
             if (band == null)
                 return NotFound(new ApiResponse(404, $"No band with id {bandId}"));
@@ -59,7 +59,7 @@ namespace Plagiator.Api.Controllers
             
             try
             {
-                var bandita = await Repository.UpdateBand(band);
+                var bandita = await Repository.UpdateBandAsync(band);
                 return Ok(new ApiOKResponse(bandita));
             }
             catch (ApplicationException)
@@ -74,7 +74,7 @@ namespace Plagiator.Api.Controllers
         {
             if (ModelState.IsValid)
             {
-                var bandita = await Repository.AddBand(band);
+                var bandita = await Repository.AddBandAsync(band);
                 return Ok(new ApiOKResponse(bandita));
             }
             else
@@ -89,7 +89,7 @@ namespace Plagiator.Api.Controllers
         {
             try
             {
-                await Repository.DeleteBand(bandId);
+                await Repository.DeleteBandAsync(bandId);
                 return Ok(new ApiOKResponse("Record deleted"));
             }
             catch (ApplicationException) {

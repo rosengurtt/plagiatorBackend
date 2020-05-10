@@ -27,9 +27,9 @@ namespace SQLDBAccess.Controllers
             string startWith = null,
             int? bandId = null)
         {
-            var totalSongs =await Repository.GetNumberOfSongs(pageNo, pageSize, startWith, bandId);
+            var totalSongs =await Repository.GetNumberOfSongsAsync(startWith, bandId);
          
-            var songs = await Repository.GetSongs(pageNo, pageSize, startWith, bandId);
+            var songs = await Repository.GetSongsAsync(pageNo, pageSize, startWith, bandId);
             var retObj = new
             {
                 page = pageNo,
@@ -43,7 +43,7 @@ namespace SQLDBAccess.Controllers
         [HttpGet("{songId}")]
         public async Task<IActionResult> GetSong(int songId)
         {
-            var song = await Repository.GetSongById(songId);
+            var song = await Repository.GetSongByIdAsync(songId);
 
             if (song == null)
                 return NotFound(new ApiResponse(404));
@@ -60,7 +60,7 @@ namespace SQLDBAccess.Controllers
 
             try
             {
-                await Repository.UpdateSong(song);
+                await Repository.UpdateSongAsync(song);
                 return Ok(new ApiOKResponse(song));
             }
             catch (ApplicationException)
@@ -77,7 +77,7 @@ namespace SQLDBAccess.Controllers
             {
                 try
                 {
-                    var addedSong = await Repository.AddSong(song);
+                    var addedSong = await Repository.AddSongAsync(song);
                     return Ok(new ApiOKResponse(addedSong));
                 }
                 catch (DbUpdateException)
@@ -97,7 +97,7 @@ namespace SQLDBAccess.Controllers
         {
             try
             {
-                await Repository.DeleteSong(songId);
+                await Repository.DeleteSongAsync(songId);
                 return Ok(new ApiOKResponse("Record deleted"));
             }
             catch (ApplicationException)

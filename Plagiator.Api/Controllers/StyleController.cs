@@ -21,10 +21,10 @@ namespace SQLDBAccess.Controllers
             this.Repository = Repository;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable>> GetStyles(int pageNo = 1, int pageSize = 10, string startWith = null)
+        public async Task<ActionResult<IEnumerable>> GetStylesAsync(int pageNo = 1, int pageSize = 10, string startWith = null)
         {
-            var totaStyles = await Repository.GetNumberOfStyles(pageNo, pageSize, startWith);
-            var styles = await Repository.GetStyles(pageNo, pageSize, startWith);
+            var totaStyles = await Repository.GetNumberOfStylesAsync(pageNo, pageSize, startWith);
+            var styles = await Repository.GetStylesAsync(pageNo, pageSize, startWith);
             var retObj = new
             {
                 page = pageNo,
@@ -36,9 +36,9 @@ namespace SQLDBAccess.Controllers
 
         // GET: api/Style/5
         [HttpGet("{styleId}")]
-        public async Task<IActionResult> GetStyle(int styleId)
+        public async Task<IActionResult> GetStyleAsync(int styleId)
         {
-            var styles = await Repository.GetStyleById(styleId);
+            var styles = await Repository.GetStyleByIdAsync(styleId);
 
             if (styles == null)
                 return NotFound(new ApiResponse(404));
@@ -57,7 +57,7 @@ namespace SQLDBAccess.Controllers
 
             try
             {
-                var stylete = await Repository.UpdateStyle(style);
+                var stylete = await Repository.UpdateStyleAsync(style);
                 return Ok(new ApiOKResponse(stylete));
             }
             catch (ApplicationException)
@@ -72,7 +72,7 @@ namespace SQLDBAccess.Controllers
         {
             if (ModelState.IsValid)
             {
-                    var stylete = await Repository.AddStyle(style);
+                    var stylete = await Repository.AddStyleAsync(style);
                     return Ok(new ApiOKResponse(stylete));               
             }
             else
@@ -85,7 +85,7 @@ namespace SQLDBAccess.Controllers
         {
             try
             {
-                await Repository.DeleteStyle(styleId);
+                await Repository.DeleteStyleAsync(styleId);
                 return Ok(new ApiOKResponse("Record deleted"));
             }
             catch (ApplicationException)
