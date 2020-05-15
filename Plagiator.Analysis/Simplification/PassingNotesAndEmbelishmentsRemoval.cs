@@ -4,10 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Plagiator.Analysis.Simplification
+namespace Plagiator.Analysis
 {
     public static partial class SimplificationUtilities
     {
+        /// <summary>
+        /// Applies all the functions that remove different types of embelishments
+        /// </summary>
+        /// <param name="notes"></param>
+        /// <returns></returns>
+        public static List<Note> RemoveEmbelishments(List<Note> notes)
+        {
+            var retObj = RemovePassingNotes(notes);
+            retObj = RemoveMordents(retObj);
+            retObj = RemoveTrills(retObj);
+            return RemoveTurns(retObj);
+        }
         /// <summary>
         /// A passing note is a note with a short duration whose pitch
         /// is between the pitch of a previous note and a subsequent note
@@ -47,7 +59,7 @@ namespace Plagiator.Analysis.Simplification
             return retObj;
         }
 
-        private static List<Note> RemoveMordents(List<Note> notes)
+        public static List<Note> RemoveMordents(List<Note> notes)
         {
             var retObj = new List<Note>();
             var voices = Utilities.GetVoices(notes);
@@ -85,7 +97,7 @@ namespace Plagiator.Analysis.Simplification
             return retObj;
         }
 
-        private static List<Note> RemoveTurns(List<Note> notes)
+        public static List<Note> RemoveTurns(List<Note> notes)
         {
             var retObj = new List<Note>();
             var voices = Utilities.GetVoices(notes);
@@ -103,10 +115,10 @@ namespace Plagiator.Analysis.Simplification
                         continue;
                     }
                     if (membersOfTurns.Contains(n)) continue;
-                    var neighboors = GetNeighboorsOfNote(n, notes)
+                    var neighboors = GetNeighboorsOfNote(n, notes, 2, 4, true)
                     .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList();
 
-                    var sliceOf6 = neighboors.Take(5).Prepend(n).ToArray();
+                    var sliceOf6 = neighboors.Take(6).ToArray();
 
                     if (IsTurn(sliceOf6))
                     {
@@ -132,19 +144,83 @@ namespace Plagiator.Analysis.Simplification
             }
             return retObj;
         }
+
         /// <summary>
-        /// Neighboors of a note are notes that start at the same time or up to 4 quarters later
-        /// and that have a pitch that is not more than 1 tone higher or lower
+        /// A trill, is a rapid alternation between an indicated note and the one above it.
+        /// </summary>
+        /// <param name="notes"></param>
+        /// <returns></returns>
+        public static List<Note> RemoveTrills(List<Note> notes)
+        {
+            var retObj = new List<Note>();
+            var voices = Utilities.GetVoices(notes);
+            // We put in this list the notes that have been found to be part of a trill
+            // and therefore have been absorved to a previous note, so we don't compute them twice
+            var membersOfTrills = new List<Note>();
+            foreach (var voice in voices.Keys)
+            {
+                var voiceNotes = voices[voice].OrderBy(n => n.StartSinceBeginningOfSongInTicks).ToList();
+                foreach (var n in voiceNotes)
+                {
+                    if (membersOfTrills.Contains(n)) continue;
+                    if (n.IsPercussion)
+                    {
+                        retObj.Add(n);
+                        continue;
+                    }
+                    var neighboors = GetNeighboorsOfNote(n, notes, 2, 12, true)
+                        .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList();
+                    if (neighboors.Count() < 8) continue;
+
+                    var j = 0;
+                    while (neighboors[j].Pitch == neighboors[j + 2].Pitch &&
+                        neighboors[j + 1].Pitch == neighboors[j + 3].Pitch &&
+                        neighboors[j].Pitch != neighboors[j + 1].Pitch) j += 2;
+                    if (j >= 4)
+                    {
+                        // We replace the trill by a note that has the pitch of the first note and last
+                        // until the end of the trill
+                        var extendedNote = new Note
+                        {
+                            Pitch = (byte)Math.Round(neighboors.Take(4).Select(x => (int)x.Pitch).Average()),
+                            StartSinceBeginningOfSongInTicks = n.StartSinceBeginningOfSongInTicks,
+                            EndSinceBeginningOfSongInTicks = neighboors[j + 1].EndSinceBeginningOfSongInTicks,
+                            Instrument = n.Instrument,
+                            IsPercussion = false,
+                            SongSimplificationId = n.SongSimplificationId,
+                            Voice = n.Voice,
+                            Volume = (byte)Math.Round(neighboors.Take(j * 2).Select(x => (int)x.Volume).Average())
+                        };
+                        retObj.Add(extendedNote);
+                        for (int i = 1; i <= j * 2; i++)
+                            membersOfTrills.Add(neighboors[i]);
+                    }
+
+                }
+            }
+            return retObj;
+        }
+        /// <summary>
+        /// Neighboors of a note are notes that start at the same time or up to x quarter notes later
+        /// and that have a pitch that is not more than y semitones higher or lower
+        /// include_n is a flag to indicate if the note n has to be included in the list returned
         /// </summary>
         /// <param name="n"></param>
         /// <param name="notes"></param>
         /// <returns></returns>
-        private static List<Note> GetNeighboorsOfNote(Note n, List<Note> notes)
+        private static List<Note> GetNeighboorsOfNote(
+            Note n,
+            List<Note> notes,
+            int distanceInSemitones = 2,
+            int distanceInQuarterNotes = 4,
+            bool include_n = false)
         {
-            return notes.Where(x => x != n && Math.Abs(x.Pitch - n.Pitch) < 3 &&
+            var retObj= notes.Where(x => x != n && Math.Abs(x.Pitch - n.Pitch) <= distanceInSemitones &&
             (x.StartSinceBeginningOfSongInTicks >= n.StartSinceBeginningOfSongInTicks) &&
-            (x.StartSinceBeginningOfSongInTicks - n.StartSinceBeginningOfSongInTicks) < 96 * 4)
+            (x.StartSinceBeginningOfSongInTicks - n.StartSinceBeginningOfSongInTicks) < 96 * distanceInQuarterNotes)
                 .ToList();
+            if (include_n) retObj = retObj.Prepend(n).ToList();
+            return retObj;
         }
 
         private static bool IsPassingNote(Note prev2, Note prev1, Note n, Note next1, Note next2)
@@ -211,6 +287,13 @@ namespace Plagiator.Analysis.Simplification
             return false;
         }
 
+        /// <summary>
+        /// Given a group of notes, it returns true if all the notes are inside an interval of
+        /// 2 semitones. If there is an interval of 3 or more semitones between 2 notes of the
+        /// group, it returns false
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         private static bool AreNotesPitchesClose(Note[] n)
         {
             for (int i = 0; i < n.Length - 1; i++)
