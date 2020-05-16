@@ -16,6 +16,7 @@ namespace Plagiator.Models.Entities
         public long StyleId { get; set; }
         public Style Style { get; set; }
         public SongStats SongStats { get; set; }
+        [NotMapped]
         public List<SongSimplification> SongSimplifications { get; set; }
         public List<Bar> Bars { get; set; }
         public List<TempoChange> TempoChanges { get; set; }

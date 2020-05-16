@@ -22,6 +22,7 @@ namespace Plagiator.Persistence
         public DbSet<TempoChange> TempoChanges { get; set; }
 
         public DbSet<SongSimplification> SongSimplifications { get; set; }
+        public DbSet<SongSimplificationNote> SongSimplificationNotes { get; set; }
 
         public DbSet<Pattern> Patterns { get; set; }
         public DbSet<Occurrence> Occurrences { get; set; }
@@ -46,6 +47,7 @@ namespace Plagiator.Persistence
             modelBuilder.Entity<PitchBendItem>().ToTable("PitchBendItems");
             modelBuilder.Entity<TempoChange>().ToTable("TempoChanges");
             modelBuilder.Entity<SongSimplification>().ToTable("SongSimplifications");
+            modelBuilder.Entity<SongSimplificationNote>().ToTable("SongSimplificationNotes");
             modelBuilder.Entity<Pattern>().ToTable("Patterns");
             modelBuilder.Entity<Occurrence>().ToTable("Occurrences");
             modelBuilder.Entity<Chord>().ToTable("Chords");

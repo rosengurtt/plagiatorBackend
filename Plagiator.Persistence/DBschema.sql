@@ -1,10 +1,11 @@
 DROP TABLE IF EXISTS  OccurrenceNotes
+DROP TABLE IF EXISTS  SongSimplificationNotes
+DROP TABLE IF EXISTS  MelodyNotes
 DROP TABLE IF EXISTS  Occurrences
 DROP TABLE IF EXISTS  Patterns
 DROP TABLE IF EXISTS  PatternTypes
 DROP TABLE IF EXISTS  PitchBendItems
 DROP TABLE IF EXISTS  ChordOccurrences
-DROP TABLE IF EXISTS  MelodyNotes
 DROP TABLE IF EXISTS  Melodies
 DROP TABLE IF EXISTS  Chords
 DROP TABLE IF EXISTS  Notes
@@ -238,11 +239,17 @@ CREATE TABLE Notes(
 	EndSinceBeginningOfSongInTicks bigint NOT NULL,
 	Instrument tinyint NOT NULL,
 	IsPercussion bit null,
-	Voice tinyint not null,
-	SongSimplificationId bigint not null,
-    ChordId bigint null
+	Voice tinyint not null
 )
-ALTER TABLE Notes  WITH CHECK ADD  CONSTRAINT FK_Notes_SongSimplifications FOREIGN KEY(SongSimplificationId)
+
+create table SongSimplificationNotes(
+    Id bigint IDENTITY(1,1) primary key clustered NOT NULL,
+    NoteId bigint,
+    SongSimplificationId bigint
+    )
+ALTER TABLE SongSimplificationNotes  WITH CHECK ADD  CONSTRAINT FK_SongSimplificationNote_Note FOREIGN KEY(NoteId)
+REFERENCES Notes (Id)
+ALTER TABLE SongSimplificationNotes  WITH CHECK ADD  CONSTRAINT FK_SongSimplificationNote_SongSimplification FOREIGN KEY(SongSimplificationId)
 REFERENCES SongSimplifications (Id)
 
 CREATE TABLE MelodyNotes(

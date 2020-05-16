@@ -75,7 +75,6 @@ namespace Plagiator.Analysis
                             IsPercussion = n.IsPercussion,
                             Volume = n.Volume,
                             Instrument = n.Instrument,
-                            SongSimplificationId = n.SongSimplificationId
                         };
                         // We set the value of startTick  for the next iteration
                         startTick = nextPitchChange.TicksSinceBeginningOfSong;

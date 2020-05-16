@@ -25,6 +25,8 @@ namespace Plagiator.Models.Entities
         /// Version 0 is the original song with all the notes
         /// </summary>
         public long SimplificationVersion { get; set; }
+
+        [NotMapped]
         public List<Note> Notes { get; set; }
 
         public long NumberOfVoices { get; set; }
