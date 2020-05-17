@@ -39,18 +39,43 @@ namespace Plagiator.Api.Controllers
                 {
                     var simpl = await Repository.GetSongSimplificationAsync(song.Id, 0);
 
-                    var newSimpl = new SongSimplification()
+                    var simpl1 = new SongSimplification()
                     {
                         Notes = simpl.Notes.Select(n => n.Clone())
                             .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList(),
-                        SimplificationVersion = simpl.SimplificationVersion + 1,
+                        SimplificationVersion = 1,
                         SongId = simpl.SongId,
                         NumberOfVoices = simpl.NumberOfVoices
                     };
-                    newSimpl.Notes = SimplificationUtilities.RemoveBendings(newSimpl.Notes);
-                    newSimpl.Notes = SimplificationUtilities.RemoveEmbelishments(newSimpl.Notes);
+                    simpl1.Notes = SimplificationUtilities.RemoveBendings(simpl1.Notes);
+                    simpl1.Notes = SimplificationUtilities.RemoveEmbelishments(simpl1.Notes);
 
-                    await Repository.AddSongSimplificationAsync(newSimpl);
+                    await Repository.AddSongSimplificationAsync(simpl1);
+
+                    var simpl2 = new SongSimplification()
+                    {
+                        Notes = simpl1.Notes.Select(n => n.Clone())
+                            .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList(),
+                        SimplificationVersion = 2,
+                        SongId = simpl.SongId,
+                        NumberOfVoices = simpl.NumberOfVoices
+                    };
+                    simpl2.Notes = SimplificationUtilities.RemoveNonEssentialNotes(simpl2.Notes,80);
+
+                    await Repository.AddSongSimplificationAsync(simpl2);
+
+                    var simpl3 = new SongSimplification()
+                    {
+                        Notes = simpl2.Notes.Select(n => n.Clone())
+                            .OrderBy(x => x.StartSinceBeginningOfSongInTicks).ToList(),
+                        SimplificationVersion = 3,
+                        SongId = simpl.SongId,
+                        NumberOfVoices = simpl.NumberOfVoices
+                    };
+                    simpl3.Notes = SimplificationUtilities.RemoveNonEssentialNotes(simpl3.Notes, 80);
+
+                    await Repository.AddSongSimplificationAsync(simpl3);
+
                 }
             }
 
